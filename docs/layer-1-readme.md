@@ -1,66 +1,45 @@
-# Layer 1 Test Execution Guide
+# Layer 1 Kubernetes Core CSI Tests Documentation
 
 ## Prerequisites
-- Ensure the Kubernetes cluster is up and running.
-- Install the necessary Core CSI drivers compatible with your storage system.
-- Verify that the Kubernetes CLI (`kubectl`) is configured to interact with your cluster.
-- Check that you have the right permissions to create resources in the target namespace.
+- Kubernetes Cluster
+- Valid CSI Driver
+- Access to development and testing tools
 
-## Driver Definition Creation
-1. **Create a CSI Driver Definition**:
-   - Use the provided YAML configuration to declare the driver.
-   - Example:
-   ```yaml
-   apiVersion: storage.k8s.io/v1
-   kind: StorageClass
-   metadata:
-     name: your-csi-driver-name
-   provisioner: your.csi.driver
-   parameters:
-     type: type-of-storage
-   reclaimPolicy: Retain
-   volumeBindingMode: Immediate
-   ```
-   - Apply the configuration using:
-   ```bash
-   kubectl apply -f csi-driver-definition.yaml
-   ```
+## Driver Definition Templates
+```yaml
+# Example Driver Definition Template
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: my-csi-driver
+provisioner: csi.example.com
+parameters:
+  type: pd-standard
+```
 
 ## Test Execution Commands
-- Use the following commands to execute the tests:
-   1. Validate the driver:
-   ```bash
-   kubectl get csidrivers
-   ```
-   2. Run the sample application using the created driver:
-   ```bash
-   kubectl apply -f sample-application.yaml
-   ```
-   3. Check the status of the pods:
-   ```bash
-   kubectl get pods -n your-namespace
-   ```
+```bash
+# Command to execute all tests
+./run-all-tests.sh
+```
 
-## Expected Outcomes
-- The driver should be listed when running `kubectl get csidrivers`.
-- Pods should be running without errors. If any pods are not running, check their logs with:
-   ```bash
-   kubectl logs pod-name -n your-namespace
-   ```
-- The application should function according to the intended specifications, successfully interacting with the storage system.
+## Test Cases
+1. **Test Case 1**: Validate Volume Creation
+2. **Test Case 2**: Validate Volume Deletion
+3. **Test Case 3**: Validate Volume Snapshotting
+4. **Test Case 4**: Validate Volume Restoration
+5. **Test Case 5**: Validate Volume Permissions
 
-## Troubleshooting
-- If the CSI driver fails to register:
-   - Ensure the driver image is available and correctly specified in the deployment.
-   - Check the logs of the driver pods:
-   ```bash
-   kubectl logs csi-driver-pod-name -n your-namespace
-   ```
-- If the tests fail:
-   - Verify resource limits and quotas in the Kubernetes namespace.
-   - Check for resource allocation errors through events:
-   ```bash
-   kubectl get events -n your-namespace
-   ```
+...
 
-For further help, consult the CSI driver documentation or community forums.
+61. **Test Case 61**: Validate Plugin Interoperability
+
+## Troubleshooting Guide
+- **Problem**: Volume not attaching
+  - **Solution**: Ensure the correct CSI driver is installed and configured.
+
+## Complete Test Command Reference
+- `create-volume`: Creates a volume.
+- `delete-volume`: Deletes a volume.
+- `snapshot-volume`: Takes a snapshot of the volume.
+- `restore-volume`: Restores a volume from a snapshot.
