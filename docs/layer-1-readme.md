@@ -1,31 +1,76 @@
-# CSI Replication Add-on
+# Layer 1 CSI Replication Add-on Tests
 
-The CSI Replication Add-on is the primary project focus, facilitating various operations for managing volume replication in a Kubernetes environment.
+## Overview
+This document provides a comprehensive overview of Layer 1 CSI Replication Add-on tests. This is the primary focus of the project, aimed at ensuring the reliability and efficiency of the replication features.
 
 ## RPC Operations
-1. **EnableVolumeReplication**: Activates replication for a specified volume.
-2. **DisableVolumeReplication**: Deactivates replication for a specified volume.
-3. **PromoteVolume**: Promotes a volume to become the primary volume.
-4. **DemoteVolume**: Demotes a volume from being the primary volume.
-5. **ResyncVolume**: Re-synchronizes the replicated volume with its primary version.
-6. **GetVolumeReplicationInfo**: Retrieves information about the replication status of a volume.
+The following RPC operations are central to the testing of the Layer 1 CSI Replication Add-on:
+1. **EnableVolumeReplication** - Initiates the replication process for the specified volume.
+2. **DisableVolumeReplication** - Stops the replication process for the specified volume.
+3. **PromoteVolume** - Promotes a volume to be the primary for replication purposes.
+4. **DemoteVolume** - Demotes a volume to a secondary state.
+5. **ResyncVolume** - Resynchronizes the data of a volume with its replica.
+6. **GetVolumeReplicationInfo** - Retrieves the replication status and information of a volume.
 
-## References
-- [csi-addons/spec](https://github.com/csi-addons/spec)
-- [kubevirt-storage-checkup API summary](https://your.api.link)
+## Official References
+- [csi-addons/spec](https://github.com/kubernetes-sigs/csi-addons)
+- [kubevirt-storage-checkup API Summary](https://github.com/kubevirt/kubevirt-storage-checkup)
 
-## Feature Flag Implementation Strategy
-Details on how to implement feature flags can be referenced in the feature documentation.
-
-## Test Categories
-The test categories in total include approximately 40 tests that cover various aspects of volume replication for the CSI Replication Add-on. 
+## Test Categories Summary
+The tests are categorized into six main categories, with a total of 42 tests implemented to ensure comprehensive coverage of functionality:
+1. **Basic Functionality** - 10 tests
+2. **Edge Cases** - 8 tests
+3. **Performance** - 6 tests
+4. **Error Handling** - 8 tests
+5. **Integration** - 5 tests
+6. **End-to-End** - 5 tests
 
 ## Prerequisites
-- Kubernetes cluster configured.
-- Proper RBAC permissions set.
+Before running the tests, ensure the following prerequisites are met:
+- Kubernetes cluster is set up and available.
+- CSI driver and associated components are deployed in the cluster.
+- Access to required permissions to perform replication operations.
 
-## Setup Instructions
-Follow the official setup guide to configure the CSI Replication Add-on in your cluster.
+## Feature Flag Implementation Strategy
+Feature flags are used to control the exposure of replication features. The strategy involves:
+- Conditional checks based on the feature flag status.
+- Wrapping new functionality under the feature flag to prevent breaking existing implementations.
+
+## Running Tests Instructions
+To run the tests, follow these instructions:
+1. Clone the repository:  
+   ```bash
+   git clone https://github.com/nadavleva/csi_replication_certs.git
+   cd csi_replication_certs
+   ```
+2. Install the necessary dependencies:  
+   ```bash
+   make setup
+   ```
+3. Execute the tests:  
+   ```bash
+   make test
+   ```
+
+## Pass/Fail Criteria
+The tests will be considered successful if:
+- All assertions pass without any errors.
+- There are no unexpected failures during execution.
+
+## Example Workflow for Enabling Replication
+1. Enable volume replication using the following command:
+   ```bash
+   csi-driver enable-replication --volume-id <volume_id>
+   ```
+2. Monitor the status of the replication process:
+   ```bash
+   csi-driver get-replication-status --volume-id <volume_id>
+   ```
 
 ## Troubleshooting Guide
-Refer to the troubleshooting section for common issues and their solutions.
+In case of issues, refer to the following steps for troubleshooting:
+- Check the logs of the CSI components for any error messages.
+- Ensure that the cluster meets all prerequisites mentioned above.
+- Validate network connectivity between the source and destination volumes.
+
+For further assistance, please refer to the official documentation or contact support.
