@@ -1,45 +1,31 @@
-# Layer 1 Kubernetes Core CSI Tests Documentation
+# CSI Replication Add-on
+
+The CSI Replication Add-on is the primary project focus, facilitating various operations for managing volume replication in a Kubernetes environment.
+
+## RPC Operations
+1. **EnableVolumeReplication**: Activates replication for a specified volume.
+2. **DisableVolumeReplication**: Deactivates replication for a specified volume.
+3. **PromoteVolume**: Promotes a volume to become the primary volume.
+4. **DemoteVolume**: Demotes a volume from being the primary volume.
+5. **ResyncVolume**: Re-synchronizes the replicated volume with its primary version.
+6. **GetVolumeReplicationInfo**: Retrieves information about the replication status of a volume.
+
+## References
+- [csi-addons/spec](https://github.com/csi-addons/spec)
+- [kubevirt-storage-checkup API summary](https://your.api.link)
+
+## Feature Flag Implementation Strategy
+Details on how to implement feature flags can be referenced in the feature documentation.
+
+## Test Categories
+The test categories in total include approximately 40 tests that cover various aspects of volume replication for the CSI Replication Add-on. 
 
 ## Prerequisites
-- Kubernetes Cluster
-- Valid CSI Driver
-- Access to development and testing tools
+- Kubernetes cluster configured.
+- Proper RBAC permissions set.
 
-## Driver Definition Templates
-```yaml
-# Example Driver Definition Template
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: my-csi-driver
-provisioner: csi.example.com
-parameters:
-  type: pd-standard
-```
-
-## Test Execution Commands
-```bash
-# Command to execute all tests
-./run-all-tests.sh
-```
-
-## Test Cases
-1. **Test Case 1**: Validate Volume Creation
-2. **Test Case 2**: Validate Volume Deletion
-3. **Test Case 3**: Validate Volume Snapshotting
-4. **Test Case 4**: Validate Volume Restoration
-5. **Test Case 5**: Validate Volume Permissions
-
-...
-
-61. **Test Case 61**: Validate Plugin Interoperability
+## Setup Instructions
+Follow the official setup guide to configure the CSI Replication Add-on in your cluster.
 
 ## Troubleshooting Guide
-- **Problem**: Volume not attaching
-  - **Solution**: Ensure the correct CSI driver is installed and configured.
-
-## Complete Test Command Reference
-- `create-volume`: Creates a volume.
-- `delete-volume`: Deletes a volume.
-- `snapshot-volume`: Takes a snapshot of the volume.
-- `restore-volume`: Restores a volume from a snapshot.
+Refer to the troubleshooting section for common issues and their solutions.
