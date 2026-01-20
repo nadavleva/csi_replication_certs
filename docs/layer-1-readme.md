@@ -13,8 +13,10 @@ The following RPC operations are central to the testing of the Layer 1 CSI Repli
 6. **GetVolumeReplicationInfo** - Retrieves the replication status and information of a volume.
 
 ## Official References
-- [csi-addons/spec](https://github.com/kubernetes-sigs/csi-addons)
-- [kubevirt-storage-checkup API Summary](https://github.com/kubevirt/kubevirt-storage-checkup)
+- [CSI Add-ons Specification - Replication](https://github.com/csi-addons/spec/tree/main/replication)
+- [CSI Add-ons Kubernetes Integration](https://github.com/csi-addons/kubernetes-csi-addons)
+- [KubeVirt Storage Checkup](https://github.com/kiagnose/kubevirt-storage-checkup)
+- [CSI Replication Add-on API Summary](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-replication-api.md)
 
 ## Test Categories Summary
 The tests are categorized into six main categories, with a total of 42 tests implemented to ensure comprehensive coverage of functionality:
