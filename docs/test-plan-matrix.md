@@ -1,38 +1,80 @@
-# Test Plan Matrix
+# CSI Replication Certification - Test Plan Matrix
 
-| Test ID | Test Description | Prerequisites | Expected Results | Priority |
-|---------|------------------|---------------|------------------|----------|
+This document provides a high-level overview of test subjects across all three certification layers.
 
-## Layer 1: CSI Driver Tests
-| 1.1     | Basic provisioning (RWO, RWX, Block, Filesystem) | CSI Driver, Kubernetes cluster | Volumes successfully provisioned | P0 |
-| 1.2     | Volume snapshots (create, delete, restore) | Volume must exist | Volumes can be created, deleted, and restored | P0 |
-| 1.3     | Volume clones (from snapshot, from volume) | Snapshot must exist | Cloned volume is identical to original | P1 |
-| 1.4     | Volume expansion (offline, online) | Volume must exist | Volume size updated without errors | P1 |
-| 1.5     | Capacity tracking | CSI Driver, Metrics API | Accurate reporting of volume capacity | P2 |
-| 1.6     | Multi-attach scenarios | Volume must support multi-attach | Concurrent access from multiple nodes | P2 |
+## Overview
 
-## Layer 2: Volume Replication Tests
-| 2.1     | Enable/disable replication | Volume must exist | Replication status changes as expected | P0 |
-| 2.2     | Primary/secondary role transitions | Replication must be configured | Roles switch without data loss | P0 |
-| 2.3     | Sync/async mode testing | Replication must be configured | Works as per chosen mode | P1 |
-| 2.4     | Force resync operations | Replication must be running | Resync occurs with no errors | P1 |
-| 2.5     | Replication health monitoring | Replication must be configured | Health is reported accurately | P2 |
-| 2.6     | Split-brain scenarios | Replication must be running | Correct resolution of conflicts | P2 |
+The certification process is divided into three progressive layers, each building upon the previous one:
 
-## Layer 3: VolumeReplicationGroup Tests
-| 3.1     | Multi-PVC consistency groups | Multi-PVC setup done | Consistency group behaves as expected | P0 |
-| 3.2     | S3 metadata management (upload, download, verify) | S3 bucket configured | Metadata correctly managed | P1 |
-| 3.3     | Kubernetes object protection (ConfigMap, Secret, Deployment backups) | Objects must exist | Objects are backed up/restored as expected | P1 |
-| 3.4     | Group snapshot operations | Multi-PVC setup done | Group snapshots succeed | P2 |
-| 3.5     | PV/PVC metadata preservation | Metadata should exist | No data loss during operations | P2 |
-| 3.6     | Recovery testing | Backup must exist | Recovery proceeds without errors | P2 |
+| Layer | Focus Area | Test Categories | Total Tests |
+|-------|-----------|----------------|-------------|
+| Layer 1 | Core CSI Storage Operations | 6 categories | 61 tests |
+| Layer 2 | Replication & Disaster Recovery | 7 categories | 47 tests |
+| Layer 3 | Advanced Integration & Production Readiness | 6 categories | 38 tests |
 
-## Layer 4: DR Orchestration Tests
-| 4.1     | DRPolicy configuration | DRPolicy must be defined | Policy applies correctly | P0 |
-| 4.2     | Planned failover | DRPolicy applied | System fails over as planned | P0 |
-| 4.3     | Unplanned failover | DRPolicy applied | System fails over without data loss | P0 |
-| 4.4     | Failback operations | DRPolicy applied post-failover | System returns to original state | P1 |
-| 4.5     | Relocate operations | DRPolicy applied | Resources placed correctly | P1 |
-| 4.6     | Application placement | Applications must be defined | Applications deploy correctly in new site | P2 |
-| 4.7     | RPO/RTO validation | DRPolicy configured | RPO/RTO is verified as met | P2 |
-| 4.8     | Multi-cluster scenarios | Multi-cluster environment set up | Operations succeed across clusters | P2 |
+## Layer 1: Core CSI Storage Operations
+
+High-level test subjects for foundational CSI driver functionality:
+
+| Category | Description | Priority | Detailed Tests |
+|----------|-------------|----------|----------------|
+| **Volume Lifecycle** | Basic provisioning, deletion, and management | P0 | [Layer 1 Details](layer-1-test-cases.md#volume-lifecycle) |
+| **Snapshot Operations** | Snapshot creation, deletion, and restoration | P0 | [Layer 1 Details](layer-1-test-cases.md#snapshot-operations) |
+| **Volume Cloning** | Clone from volume and snapshot sources | P1 | [Layer 1 Details](layer-1-test-cases.md#volume-cloning) |
+| **Volume Expansion** | Online and offline volume resizing | P1 | [Layer 1 Details](layer-1-test-cases.md#volume-expansion) |
+| **Access Modes** | RWO, RWX, ROX, Block, and Filesystem modes | P0 | [Layer 1 Details](layer-1-test-cases.md#access-modes) |
+| **Performance & Stability** | Stress testing and resource management | P2 | [Layer 1 Details](layer-1-test-cases.md#performance-stability) |
+
+## Layer 2: Replication & Disaster Recovery
+
+High-level test subjects for replication-aware functionality:
+
+| Category | Description | Priority | Detailed Tests |
+|----------|-------------|----------|----------------|
+| **Replication Setup** | Enable/disable replication on volumes | P0 | [Layer 2 Details](layer-2-test-cases.md#replication-setup) |
+| **Replication States** | State transitions and management | P0 | [Layer 2 Details](layer-2-test-cases.md#replication-states) |
+| **Failover Operations** | Primary to secondary site transitions | P0 | [Layer 2 Details](layer-2-test-cases.md#failover-operations) |
+| **Resync & Recovery** | Re-establish replication after failures | P1 | [Layer 2 Details](layer-2-test-cases.md#resync-recovery) |
+| **Replication with Snapshots** | Snapshot behavior during replication | P1 | [Layer 2 Details](layer-2-test-cases.md#replication-snapshots) |
+| **Multi-Site Scenarios** | Cross-cluster replication topologies | P1 | [Layer 2 Details](layer-2-test-cases.md#multi-site) |
+| **Replication Monitoring** | Metrics and observability | P2 | [Layer 2 Details](layer-2-test-cases.md#monitoring) |
+
+## Layer 3: Advanced Integration & Production Readiness
+
+High-level test subjects for enterprise-grade deployments:
+
+| Category | Description | Priority | Detailed Tests |
+|----------|-------------|----------|----------------|
+| **Application Integration** | Stateful workloads (DBs, Kafka, etc.) | P0 | [Layer 3 Details](layer-3-test-cases.md#application-integration) |
+| **Disaster Recovery Orchestration** | Automated DR workflows with operators | P0 | [Layer 3 Details](layer-3-test-cases.md#dr-orchestration) |
+| **Multi-Cluster Management** | Hub-and-spoke, mesh topologies | P1 | [Layer 3 Details](layer-3-test-cases.md#multi-cluster) |
+| **Security & Compliance** | Encryption, RBAC, audit logging | P1 | [Layer 3 Details](layer-3-test-cases.md#security-compliance) |
+| **Performance at Scale** | Large volume counts, cross-region latency | P1 | [Layer 3 Details](layer-3-test-cases.md#performance-scale) |
+| **Upgrade & Lifecycle Management** | Zero-downtime upgrades, version compatibility | P2 | [Layer 3 Details](layer-3-test-cases.md#upgrade-lifecycle) |
+
+## Priority Definitions
+
+- **P0**: Critical - Must pass for certification
+- **P1**: High - Should pass, may require justification if skipped
+- **P2**: Medium - Optional but recommended for production readiness
+
+## Test Execution Order
+
+1. **Layer 1 must be completed first** - Establishes baseline CSI functionality
+2. **Layer 2 builds on Layer 1** - Adds replication capabilities
+3. **Layer 3 validates production readiness** - Comprehensive integration testing
+
+## Documentation Links
+
+- [Layer 1 README](layer-1-readme.md) - Overview and getting started
+- [Layer 1 Test Cases](layer-1-test-cases.md) - Detailed 61 test specifications
+- [Layer 2 Test Cases](layer-2-test-cases.md) - Detailed 47 test specifications  
+- [Layer 3 Test Cases](layer-3-test-cases.md) - Detailed 38 test specifications
+
+## Contributing
+
+To add or modify test cases:
+1. Update the appropriate layer-specific test case document
+2. Update this matrix if adding new test categories
+3. Ensure test IDs follow the format: `L<layer>-<category>-<number>`
+4. Submit a pull request with justification for changes
