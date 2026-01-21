@@ -1,21 +1,63 @@
-# CSI Replication Certs
+# Documentation Index
 
-## Functionality Covered
+## Layer 0: Core CSI Certification
+- **Description**: External prerequisite not implemented in this project. 
+- **References**: Kubernetes CSI conformance tests.
+- **Criteria**: Must pass all conformance tests. (Pass/Fail)
+- **Status**: Not implemented. 
 
-- List item 1
-- List item 2
-- List item 3
-- List item 4
-- List item 5
-- List item 6
-- EnableVolumeGroupReplication
-- DisableVolumeGroupReplication
-- PromoteVolumeGroup
-- DemoteVolumeGroup
-- ResyncVolumeGroup
-- GetVolumeGroupReplicationInfo
+## Layer 1: CSI Replication Add-on
+- **Description**: This is the primary focus of this project.
+- **References**:  
+  - [CSI Addons Spec: Replication](https://github.com/csi-addons/spec/tree/main/replication)
+  - [VolumeGroupReplication CRD API](https://github.com/csi-addons/kubernetes-csi-addons/blob/main/api/replication.storage/v1alpha1/volumegroupreplication_types.go)
+  - [Kubevirt Storage Checkup CSI API Summary](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-replication-api.md)
+- **Functionality Covered**: 
+  - EnableVolumeReplication
+  - DisableVolumeReplication
+  - PromoteVolume
+  - DemoteVolume
+  - ResyncVolume
+  - GetVolumeReplicationInfo
+  - EnableVolumeGroupReplication
+  - DisableVolumeGroupReplication
+  - PromoteVolumeGroup
+  - DemoteVolumeGroup
+  - ResyncVolumeGroup
+  - GetVolumeGroupReplicationInfo
+- **Criteria**: All functionalities must operate correctly. (Pass/Fail)
+- **Status**: In progress.
 
-## References
+## Layer 2: OCP Platform Orchestration (Single Cluster)
+- **Description**: Manage orchestration within a single OpenShift cluster.
+- **References**: 
+  - [OpenShift Origin Storage Tests](https://github.com/openshift/origin)
+- **Focus Areas**: 
+  - Pod failover
+  - VRG management
+- **Criteria**: Must pass designated storage tests. (Pass/Fail)
+- **Status**: Planned. 
 
-- [CSI Addons Spec: Replication](https://github.com/csi-addons/spec/tree/main/replication)
-- [VolumeGroupReplication CRD API](https://github.com/csi-addons/kubernetes-csi-addons/blob/main/api/replication.storage/v1alpha1/volumegroupreplication_types.go)
+## Layer 3: Multi-Cluster DR and CNV
+- **Description**: Focus on disaster recovery across multiple clusters and Container Native Virtualization (CNV).
+- **References**: 
+  - [RamenDR](https://github.com/ramendb/ramen)
+  - [Kubevirt Storage Checkup](https://github.com/kubevirt/kubevirt-storage-checkup)
+- **Focus Areas**: 
+  - Multi-site failover
+  - VM scenarios
+- **Criteria**: All failover and VM scenarios must be validated. (Pass/Fail)
+- **Status**: Upcoming.
+
+## Documentation Status Table
+| Layer | Status           | Pass/Fail Criteria | 
+|-------|------------------|---------------------|
+| Layer 0 | Not Implemented | N/A                 |
+| Layer 1 | In Progress      | In progress         |
+| Layer 2 | Planned          | Pending              |
+| Layer 3 | Upcoming         | Pending              |
+
+## Navigation
+- **Testing Phase**: Detailed criteria for each layer.
+- **Audience**: Developers and Operators.
+- **Feature Area**: Core functionality, replication, orchestration, DR. 
