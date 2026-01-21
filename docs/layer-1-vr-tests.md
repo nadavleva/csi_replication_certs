@@ -22,7 +22,7 @@ It is intended for use by certification tools, automation, and test writers.
 |-----------|------------------------|---------------------------------------|------------|------------|-----------------|-------------|-----------------------------------------------|-------------------------------------------------------------|------------------------|
 | L1-E-001  | EnableVolumeReplication| Enable snapshot mode                  | Primary    | Up         | mode=snapshot   | functional  | Volume present, PVC bound, rep. disabled      | VR CR created, status.replicationHandle populated           |                        |
 | L1-E-002  | EnableVolumeReplication| Enable journal mode                   | Primary    | Up         | mode=journal    | functional  | Volume present, PVC bound, rep. disabled      | VR CR created, continuous replication active                 |                        |
-| L1-E-003  | EnableVolumeReplication| Peer cluster unreachable              | Primary    | Down       | mode=snapshot   | negative    | Peer/all unreachable network                   | Operation fails: timeout, appropriate error in status        |                        |
+| L1-E-003  | EnableVolumeReplication| Peer cluster unreachable              | Primary    | Down       | mode=snapshot   | negative    | Peer/all unreachable nethttps://github.com/nicknevin/aws-ibm-gpfs-playground/blob/nadavclusters/scripts/install-rook-ceph.shwork                   | Operation fails: timeout, appropriate error in status        |                        |
 | L1-E-004  | EnableVolumeReplication| Invalid interval parameter            | Primary    | Up         | interval=5x     | negative    | Bad parameter                                 | Returns gRPC InvalidArgument error                           |                        |
 | L1-E-005  | EnableVolumeReplication| Already enabled volume                | Primary    | Up         | (none)          | functional  | VR CR exists, rep enabled already             | Idempotent, operation succeeds with no change                |                        |
 | L1-E-006  | EnableVolumeReplication| Secret reference missing/invalid      | Primary    | Up         | secret=missing  | negative    | Bad rep. secret ref                            | gRPC FailedPrecondition error                                |                        |
@@ -35,7 +35,7 @@ It is intended for use by certification tools, automation, and test writers.
 |-----------|----------------------------|--------------------------------------|------------|------------|-------------|--------------|-------------|----------------------------------------------|------------------------------------------------------|------------------------|
 | L1-DIS-001| DisableVolumeReplication   | Disable, active, peer up             | Primary    | Up         | Up          | force=false  | functional  | Rep enabled, all healthy                    | Replication removed, volume writeable                |                        |
 | L1-DIS-002| DisableVolumeReplication   | Disable, active, peer up             | Secondary  | Up         | Up          | force=false  | functional  | Rep enabled, all healthy                    | Replication stopped; secondary remains RO            |                        |
-| L1-DIS-003| DisableVolumeReplication   | Previously disabled, peer up         | Primary    | Up         | Up          | force=false  | functional  | No replication relationship                 | Idempotent, no error                                |                        |
+| L1-DIS-003| DisableVolumeReplication   | Previously disabled, peer up         | Primary    | Up         | Up          | force=false  | functional  | No replhttps://github.com/nicknevin/aws-ibm-gpfs-playground/blob/nadavclusters/scripts/install-rook-ceph.shication relationship                 | Idempotent, no error                                |                        |
 | L1-DIS-004| DisableVolumeReplication   | Previously disabled, peer up         | Secondary  | Up         | Up          | force=false  | functional  | No replication relationship                 | Idempotent, no error                                |                        |
 | L1-DIS-005| DisableVolumeReplication   | Peer down, force=false               | Primary    | Down       | Up          | force=false  | negative    | Peer unreachable (simulate network failure) | Fails gracefully, logs/unavailable                   |                        |
 | L1-DIS-006| DisableVolumeReplication   | Peer down, force=true                | Primary    | Down       | Up          | force=true   | behavioral  | Peer unreachable, force=true                | Immediate disable, makes primary writeable (warn)    |                        |
@@ -103,22 +103,6 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-INFO-001| GetVolumeReplicationInfo  | Query for healthy replication                | Primary   | Up         | -           | functional| Volume in sync                                   | Returns lastSyncTime, status=healthy               |            |
 | ...       | ...                        | ...                                         | ...       | ...        | ...         | ...       | ...          | ...                                              | ...        |
 
----
-
-## VRG Functional/API/Flow Tests
-
-| Test ID      | API/CRD                  | Scenario                                            | Cluster/Node   | Peer State | S3 State | Params         | Test Type     | Setup/Input                                    | Expected Outcome                               | Notes/Link |
-|--------------|--------------------------|-----------------------------------------------------|----------------|------------|----------|----------------|---------------|------------------------------------------------|-----------------------------------------------|------------|
-| L1-VRG-001   | VRG API/CRD              | VRG for 1 PVC, both clusters healthy               | primary/secondary| up        | up       | -              | functional     | Create VRG for matching PVC                     | VR, data, status healthy                      |            |
-| L1-VRG-002   | VRG API/CRD              | VRG for multiple matching PVCs, both clusters healthy| p/s          | up        | up       | -              | functional     | Multiple PVC selector                           | All VRs created, bound as expected            |            |
-| L1-VRG-003   | VRG API/CRD              | VRG created, secondary unreachable                 | primary        | down      | up       | -              | negative       | Create with peer down                           | VR status shows degraded/awaiting peer        |            |
-| L1-VRG-004   | VRG API/CRD              | VRG deleted, S3 present, VRs present               | primary/secondary| up        | up       | -              | behavioral     | Delete VRG                                      | VRs deleted, S3 metadata removed, finalizer clears |        |
-| L1-VRG-005   | VRG API/CRD              | VRG deletion, S3 down                              | primary/secondary| up        | down     | -              | negative       | Delete VRG with S3 unavailable                   | Delay/error, logs cleanup pending             |            |
-| L1-VRG-006   | VRG API/CRD              | VRG failover (promote secondary, primary down)     | secondary      | down      | up       | action=Failover                                 | functional     | Simulate failover                              | Secondary promoted to primary, data consistent|        |
-| ...          | ...                      | ...                                                | ...            | ...       | ...      | ...            | ...           | ...                                            | ...                                           | ...        |
-
----
-
-*Expand for all endpoints/scenarios/flows as desired for complete conformance.*
+*For comprehensive VRG (VolumeReplicationGroup) test coverage, see [layer-1-vrg-tests.md](layer-1-vrg-tests.md).*
 
 ---
