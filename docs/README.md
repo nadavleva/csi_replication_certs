@@ -12,6 +12,7 @@
   - [CSI Addons Spec: Replication](https://github.com/csi-addons/spec/tree/main/replication)
   - [VolumeGroupReplication CRD API](https://github.com/csi-addons/kubernetes-csi-addons/blob/main/api/replication.storage/v1alpha1/volumegroupreplication_types.go)
   - [Kubevirt Storage Checkup CSI API Summary](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-replication-api.md)
+  - [CSI Addons Volume Group Replication API & Arch](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-volume-group-replication-api.md)
 - **Functionality Covered**: 
   - EnableVolumeReplication
   - DisableVolumeReplication
