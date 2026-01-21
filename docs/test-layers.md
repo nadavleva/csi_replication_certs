@@ -13,8 +13,8 @@
   - ResyncVolume
   - GetVolumeReplicationInfo
 - **References**:
-  - [csi-addons/spec/replication](https://example.com/csi-addons/spec/replication)
-  - [kubevirt-storage-checkup CSI API Summary](https://example.com/kubevirt-storage-checkup)
+  - [csi-addons/spec/replication](https://github.com/csi-addons/spec/tree/main/replication)
+  - [kubevirt-storage-checkup CSI API Summary](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-replication-api.md)
 
 ## Layer 2: OCP Platform Orchestration
 - **Overview**: Management within a single cluster utilizing VRG.

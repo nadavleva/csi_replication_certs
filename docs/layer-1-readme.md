@@ -1,16 +1,46 @@
 # Layer 1 CSI Replication Add-on Tests
 
 ## Overview
-This document provides a comprehensive overview of Layer 1 CSI Replication Add-on tests. This is the primary focus of the project, aimed at ensuring the reliability and efficiency of the replication features.
+This document provides a comprehensive overview of Layer 1 CSI Replication Add-on tests. This is the primary focus of the project, aimed at ensuring the reliability and efficiency of the replication features. **This is an optional testing layer** that is only triggered when CSI drivers explicitly advertise replication capability support through CSI driver capability discovery or CRD annotations.
 
-## RPC Operations
-The following RPC operations are central to the testing of the Layer 1 CSI Replication Add-on:
+## Architecture
+- **Technical Stack**: 
+  - Go-based e2e tests
+  - Ginkgo BDD framework 
+  - Gomega matchers
+- **Execution Environment**: 
+  - Executed via `kubectl` and CSI replication sidecars
+  - Runs against live Kubernetes clusters with replication-capable CSI drivers
+  - Multi-cluster test scenarios with peer connectivity validation
+- **Cluster Requirements**:
+  - **Two clusters** with CSI drivers supporting replication capabilities
+  - **Ceph as benchmark**: Reference implementation for replication-capable CSI drivers
+  - Network connectivity between clusters for peer communication
+  - S3-compatible storage for metadata synchronization (VRG operations)
+
+## API Categories
+
+## VolumeReplication RPC Operations (CSI gRPC)
+The following RPC operations test individual volume replication via CSI gRPC endpoints:
 1. **EnableVolumeReplication** - Initiates the replication process for the specified volume.
 2. **DisableVolumeReplication** - Stops the replication process for the specified volume.
 3. **PromoteVolume** - Promotes a volume to be the primary for replication purposes.
 4. **DemoteVolume** - Demotes a volume to a secondary state.
 5. **ResyncVolume** - Resynchronizes the data of a volume with its replica.
 6. **GetVolumeReplicationInfo** - Retrieves the replication status and information of a volume.
+
+**For detailed VolumeReplication test matrix**: See [layer-1-vr-tests.md](layer-1-vr-tests.md)
+
+## VolumeReplicationGroup Operations (Kubernetes CRD)
+The following operations test volume group replication via Kubernetes CRD APIs:
+1. **EnableVolumeGroupReplication** - Initiates replication for a group of volumes.
+2. **DisableVolumeGroupReplication** - Stops replication for a group of volumes.
+3. **PromoteVolumeGroup** - Promotes a volume group to primary state.
+4. **DemoteVolumeGroup** - Demotes a volume group to secondary state.
+5. **ResyncVolumeGroup** - Resynchronizes data for a group of volumes.
+6. **GetVolumeGroupReplicationInfo** - Retrieves group replication status.
+
+**For detailed VRG test matrix**: See [layer-1-vrg-tests.md](layer-1-vrg-tests.md)
 
 ## Official References
 - [CSI Add-ons Specification - Replication](https://github.com/csi-addons/spec/tree/main/replication)
@@ -19,19 +49,43 @@ The following RPC operations are central to the testing of the Layer 1 CSI Repli
 - [CSI Replication Add-on API Summary](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-replication-api.md)
 
 ## Test Categories Summary
-The tests are categorized into six main categories, with a total of 42 tests implemented to ensure comprehensive coverage of functionality:
-1. **Basic Functionality** - 10 tests
-2. **Edge Cases** - 8 tests
-3. **Performance** - 6 tests
-4. **Error Handling** - 8 tests
-5. **Integration** - 5 tests
-6. **End-to-End** - 5 tests
+The tests are comprehensively categorized covering both VolumeReplication (CSI gRPC) and VolumeReplicationGroup (CRD) operations:
+
+### VolumeReplication Tests (CSI gRPC)
+1. **EnableVolumeReplication** - 6+ test scenarios including mode variants, error cases, idempotent operations
+2. **DisableVolumeReplication** - 8+ test scenarios covering all cluster/peer/array state combinations with force parameters
+3. **PromoteVolume** - Multiple test scenarios for healthy/degraded states with force options
+4. **DemoteVolume** - Comprehensive scenarios for role transitions and error conditions
+5. **ResyncVolume** - Split-brain recovery and synchronization scenarios
+6. **GetVolumeReplicationInfo** - Health status and monitoring test cases
+
+### VolumeReplicationGroup Tests (CRD)
+1. **VRG Disable Operations** - 16 core scenarios covering active/disabled replication states with force parameters
+2. **VRG Creation/Lifecycle** - Single/multiple PVC scenarios with cluster state variations
+3. **VRG Failover/Failback** - Emergency and planned failover scenarios
+4. **VRG Status/Monitoring** - Health checks and error reporting
+5. **VRG Deletion/Cleanup** - Resource cleanup with various dependency states
+6. **VRG Cross-Namespace** - Multi-namespace and multi-cluster scenarios
+
+**Total Test Coverage**: 100+ individual test cases across all scenarios and state combinations
 
 ## Prerequisites
 Before running the tests, ensure the following prerequisites are met:
-- Kubernetes cluster is set up and available.
-- CSI driver and associated components are deployed in the cluster.
-- Access to required permissions to perform replication operations.
+- **Two Kubernetes clusters** set up and available with network connectivity between them.
+- **CSI driver supporting replication** installed and configured on both clusters (Ceph CSI driver recommended as benchmark).
+- CSI driver must **advertise replication capabilities** through:
+  - CSI driver capability discovery, OR
+  - CRD annotations indicating replication support
+- Access to required RBAC permissions to perform replication operations on both clusters.
+- **S3-compatible storage** accessible from both clusters for VRG metadata synchronization.
+- **Network connectivity** between clusters for peer communication and data replication.
+
+## Optional Testing Framework
+This testing layer implements a **conditional execution model**:
+- Tests are **automatically skipped** if CSI drivers do not advertise replication capabilities
+- **Capability detection** occurs during test initialization phase  
+- **Graceful degradation** when replication features are not supported
+- **No false failures** for drivers that legitimately don't support replication
 
 ## Feature Flag Implementation Strategy
 Feature flags are used to control the exposure of replication features. The strategy involves:
