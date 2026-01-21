@@ -1,6 +1,6 @@
 # Layer-1 CSI Replication Add-on Test Cases Overview
 
-This file provides a high-level summary of all Layer-1 test cases for CSI Replication Add-on driver certification, following the guidance of Andrew and project consensus.
+This file provides a high-level summary of all Layer-1 test cases for CSI Replication Add-on driver certification.
 
 - All endpoint tests for Enable/Disable/Promote/Demote/Resync/GetInfo are enumerated.
 - All permutations of cluster/peer/array states and `force` parameter are considered.
@@ -15,9 +15,10 @@ For a fully detailed and explicit enumeration of every test scenario—including
 
 | Category                        | Coverage (Example)                                      |
 |----------------------------------|--------------------------------------------------------|
-| EnableVolumeReplication         | Mode=snapshot, mode=journal, invalid interval, idempotent, peer down |
-| DisableVolumeReplication        | All states of primary/secondary, peer up/down, force true/false, array up/down, previously disabled |
-| Promote/DemoteVolume            | Promote with/without force, split-brain, I/O workload, array down, already primary/secondary |
+| EnableVolumeReplication         | Mode=snapshot, mode=journal, invalid interval, idempotent, peer down (6 scenarios: L1-E-001 to L1-E-006) |
+| DisableVolumeReplication        | **Complete Test Matrix**: All states of primary/secondary, peer up/down, force true/false, array up/down, previously disabled (16 scenarios: L1-DIS-001 to L1-DIS-016) |
+| PromoteVolume                   | **Complete Test Matrix**: Promote with/without force, split-brain, I/O workload, array down, already primary/secondary (8 scenarios: L1-PROM-001 to L1-PROM-008) |
+| DemoteVolume                    | **Complete Test Matrix**: Demote with/without force, I/O workload, array down, already secondary, peer connectivity (8 scenarios: L1-DEM-001 to L1-DEM-008) |
 | ResyncVolume                    | After split-brain, autoResync, progress, called on primary |
 | GetVolumeReplicationInfo        | Info for healthy/degraded replication, sync in progress |
 | VRG API/Workflow                | VRG create/delete (both clusters), failover/failback, unavailable peer/S3, invalid PVC, cross-namespace |
@@ -31,10 +32,10 @@ For a fully detailed and explicit enumeration of every test scenario—including
 | Category                        | Coverage (Example)                                      |
 |----------------------------------|--------------------------------------------------------|
 | VRG Create/Delete               | Single PVC, multiple PVCs, cross-namespace, invalid selectors |
-| VRG Disable Operations          | Disable on primary/secondary, peer up/down, force true/false, array up/down |
+| VRG Disable Operations          | **Complete Test Matrix**: Disable on primary/secondary, peer up/down, force true/false, array up/down (16 scenarios: L1-VRG-DIS-001 to L1-VRG-DIS-016) |
 | VRG Failover/Failback           | Emergency failover, graceful failback, split-brain scenarios |
 | VRG Status/Monitoring           | Health checks, sync status, error reporting |
-| VRG S3 Integration              | S3 metadata handling, S3 unavailable scenarios |
+| VRG S3 Integration              | S3 metadata handling, S3 unavailable scenarios (optional for advanced DR) |
 
 ---
 

@@ -41,29 +41,49 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-DIS-006| DisableVolumeReplication   | Peer down, force=true                | Primary    | Down       | Up          | force=true   | behavioral  | Peer unreachable, force=true                | Immediate disable, makes primary writeable (warn)    |                        |
 | L1-DIS-007| DisableVolumeReplication   | Array unreachable, force=false       | Primary    | Up         | Down        | force=false  | negative    | Disconnect primary array                     | Fails, error code: array unreachable                 |                        |
 | L1-DIS-008| DisableVolumeReplication   | Array unreachable, force=true        | Secondary  | Up         | Down        | force=true   | negative    | Disconnect secondary array                   | Fails, error code: array unreachable                 |                        |
-| ...       | ...                        | ...                                  | ...        | ...        | ...         | ...          | ...         | ...                                          | ...                                                  |                        |
+
+### DisableVolumeReplication with force=true (Complete Test Matrix)
+
+| Test ID   | API                        | Scenario                                 | Node Role  | Peer State | Array State | Params       | Test Type   | Setup/Input                                 | Expected Outcome                                     | Notes/Link             |
+|-----------|----------------------------|------------------------------------------|------------|------------|-------------|--------------|-------------|----------------------------------------------|------------------------------------------------------|------------------------|
+| L1-DIS-009| DisableVolumeReplication   | Force disable, active, peer up           | Primary    | Up         | Up          | force=true   | behavioral  | Rep enabled, all healthy, force=true        | Immediate disable, volume writeable, warn logged     |                        |
+| L1-DIS-010| DisableVolumeReplication   | Force disable, active, peer up           | Secondary  | Up         | Up          | force=true   | behavioral  | Rep enabled, all healthy, force=true        | Immediate disable, secondary disconnected, warn logged|                      |
+| L1-DIS-011| DisableVolumeReplication   | Force disable, previously disabled       | Primary    | Up         | Up          | force=true   | functional  | No replication relationship, force=true     | Idempotent, no error                                |                        |
+| L1-DIS-012| DisableVolumeReplication   | Force disable, previously disabled       | Secondary  | Up         | Up          | force=true   | functional  | No replication relationship, force=true     | Idempotent, no error                                |                        |
+| L1-DIS-013| DisableVolumeReplication   | Force disable, peer down                 | Primary    | Down       | Up          | force=true   | behavioral  | Peer unreachable, force=true                | Immediate disable, split-brain warning logged       |                        |
+| L1-DIS-014| DisableVolumeReplication   | Force disable, peer down                 | Secondary  | Down       | Up          | force=true   | behavioral  | Peer unreachable, force=true                | Emergency disable, cleanup attempted                 |                        |
+| L1-DIS-015| DisableVolumeReplication   | Force disable, primary array down        | Primary    | Up         | Down        | force=true   | negative    | Primary array unreachable, force=true       | Still fails, cannot force without array access      |                        |
+| L1-DIS-016| DisableVolumeReplication   | Force disable, secondary array down      | Secondary  | Up         | Down        | force=true   | behavioral  | Secondary array unreachable, force=true     | Forced cleanup, metadata inconsistency warnings     |                        |
 
 ---
 
-## PromoteVolume (all key permutations)
+## PromoteVolume (Complete Test Matrix)
 
-| Test ID   | API                    | Scenario                                  | Node Role  | Peer State | Params      | Test Type  | Setup/Input | Expected Outcome                              | Notes/Link |
-|-----------|------------------------|-------------------------------------------|------------|------------|-------------|-----------|-------------|-----------------------------------------------|------------|
-| L1-PROM-001| PromoteVolume         | Promote secondary → primary, healthy      | Secondary  | Up         | force=false | functional| All VRs in sync, healthy                      | VR status.state=Primary, volume RW                  |            |
-| L1-PROM-002| PromoteVolume         | Promote secondary, peer down, force=false | Secondary  | Down       | force=false | negative  | Primary cluster unreachable, attempt promote   | Fails, split-brain error/prevents operation         |            |
-| L1-PROM-003| PromoteVolume         | Promote secondary, peer down, force=true  | Secondary  | Down       | force=true  | behavioral| Peer down, force emergency failover           | Promoted, warning about possible data loss          |            |
-| ...       | ...                    | ...                                       | ...        | ...        | ...         | ...       | ...         | ...                                           | ...        |
+| Test ID   | API                    | Scenario                                  | Node Role  | Peer State | Array State | Params      | Test Type  | Setup/Input | Expected Outcome                              | Notes/Link |
+|-----------|------------------------|-------------------------------------------|------------|------------|-------------|-------------|-----------|-------------|-----------------------------------------------|------------|
+| L1-PROM-001| PromoteVolume         | Promote secondary → primary, healthy      | Secondary  | Up         | Up          | force=false | functional| All VRs in sync, healthy                      | VR status.state=Primary, volume RW                  |            |
+| L1-PROM-002| PromoteVolume         | Promote already primary, healthy          | Primary    | Up         | Up          | force=false | functional| Volume already primary                        | Idempotent operation, no change                     |            |
+| L1-PROM-003| PromoteVolume         | Promote secondary, peer down, force=false | Secondary  | Down       | Up          | force=false | negative  | Primary cluster unreachable, attempt promote   | Fails, split-brain prevention active               |            |
+| L1-PROM-004| PromoteVolume         | Promote secondary, peer down, force=true  | Secondary  | Down       | Up          | force=true  | behavioral| Peer down, force emergency failover           | Promoted, warning about possible data loss          |            |
+| L1-PROM-005| PromoteVolume         | Promote, array unreachable, force=false   | Secondary  | Up         | Down        | force=false | negative  | Secondary array disconnected                   | Fails, cannot access volume for promotion          |            |
+| L1-PROM-006| PromoteVolume         | Promote, array unreachable, force=true    | Secondary  | Up         | Down        | force=true  | negative  | Secondary array disconnected, force attempted  | Still fails, cannot promote without array access   |            |
+| L1-PROM-007| PromoteVolume         | Promote with active I/O workload          | Secondary  | Up         | Up          | force=false | behavioral| Active workload on primary                     | Graceful promotion, I/O redirected                 |            |
+| L1-PROM-008| PromoteVolume         | Force promote with active I/O workload    | Secondary  | Up         | Up          | force=true  | behavioral| Active workload, force promotion              | Immediate promotion, potential I/O disruption warning|           |
 
 ---
 
-## DemoteVolume (all key permutations)
+## DemoteVolume (Complete Test Matrix)
 
-| Test ID   | API                      | Scenario                                    | Node Role   | Peer State | Params      | Test Type  | Setup/Input  | Expected Outcome                             | Notes/Link |
-|-----------|--------------------------|---------------------------------------------|-------------|------------|-------------|-----------|--------------|----------------------------------------------|------------|
-| L1-DEM-001| DemoteVolume             | Demote primary to secondary, healthy        | Primary     | Up         | force=false | functional|            | VR status.state=Secondary, volume RO         |            |
-| L1-DEM-002| DemoteVolume             | Already secondary, healthy                  | Secondary   | Up         | force=false | functional|            | Idempotent                                   |            |
-| L1-DEM-003| DemoteVolume             | Active workload, force=true                 | Primary     | Up         | force=true  | behavioral|            | Pending I/O may be dropped, warning issued   |            |
-| ...       | ...                      | ...                                         | ...         | ...        | ...         | ...       | ...         | ...                                          | ...        |
+| Test ID   | API                      | Scenario                                    | Node Role   | Peer State | Array State | Params      | Test Type  | Setup/Input  | Expected Outcome                             | Notes/Link |
+|-----------|--------------------------|---------------------------------------------|-------------|------------|-------------|-------------|-----------|--------------|----------------------------------------------|------------|
+| L1-DEM-001| DemoteVolume             | Demote primary to secondary, healthy        | Primary     | Up         | Up          | force=false | functional| Primary with healthy replication             | VR status.state=Secondary, volume RO         |            |
+| L1-DEM-002| DemoteVolume             | Demote already secondary, healthy           | Secondary   | Up         | Up          | force=false | functional| Volume already secondary                     | Idempotent operation, no change              |            |
+| L1-DEM-003| DemoteVolume             | Demote primary, peer down, force=false      | Primary     | Down       | Up          | force=false | negative  | Peer unreachable                             | Fails, cannot establish secondary relationship|            |
+| L1-DEM-004| DemoteVolume             | Demote primary, peer down, force=true       | Primary     | Down       | Up          | force=true  | behavioral| Peer down, force demotion                    | Demoted locally, warning about peer state   |            |
+| L1-DEM-005| DemoteVolume             | Demote, array unreachable, force=false      | Primary     | Up         | Down        | force=false | negative  | Primary array disconnected                   | Fails, cannot access volume for demotion    |            |
+| L1-DEM-006| DemoteVolume             | Demote, array unreachable, force=true       | Primary     | Up         | Down        | force=true  | negative  | Primary array disconnected, force attempted  | Still fails, cannot demote without array access|         |
+| L1-DEM-007| DemoteVolume             | Demote with active I/O workload, force=false| Primary     | Up         | Up          | force=false | behavioral| Active workload, graceful demotion           | Pending I/O completed, then demoted to RO   |            |
+| L1-DEM-008| DemoteVolume             | Force demote with active I/O workload       | Primary     | Up         | Up          | force=true  | behavioral| Active workload, force=true                  | Immediate demotion, pending I/O may be dropped, warning issued |  |
 
 ---
 

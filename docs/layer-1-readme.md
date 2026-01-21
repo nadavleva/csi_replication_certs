@@ -16,7 +16,7 @@ This document provides a comprehensive overview of Layer 1 CSI Replication Add-o
   - **Two clusters** with CSI drivers supporting replication capabilities
   - **Ceph as benchmark**: Reference implementation for replication-capable CSI drivers
   - Network connectivity between clusters for peer communication
-  - S3-compatible storage for metadata synchronization (VRG operations)
+  - S3-compatible storage for advanced disaster recovery scenarios (optional for basic VRG operations)
 
 ## API Categories
 
@@ -77,8 +77,8 @@ Before running the tests, ensure the following prerequisites are met:
   - CSI driver capability discovery, OR
   - CRD annotations indicating replication support
 - Access to required RBAC permissions to perform replication operations on both clusters.
-- **S3-compatible storage** accessible from both clusters for VRG metadata synchronization.
 - **Network connectivity** between clusters for peer communication and data replication.
+- **S3-compatible storage** accessible from both clusters (optional - only required for advanced disaster recovery scenarios and external metadata persistence)
 
 ## Optional Testing Framework
 This testing layer implements a **conditional execution model**:
