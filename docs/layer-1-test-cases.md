@@ -7,7 +7,7 @@ This file provides a high-level summary of all Layer-1 test cases for CSI Replic
 - Includes user/workflow-level VRG API flows relevant for Layer-1 conformance.
 - **CRD lifecycle/controller/unit/integration tests are no longer included** (these belong in Layer-2 or upstream).
 
-For a fully detailed and explicit enumeration of every test scenario—including input steps, expected outcomes, error codes, automation links—**see [`docs/layer-1-test-details.md`](docs/layer-1-test-details.md)**.
+For a fully detailed and explicit enumeration of every test scenario—including input steps, expected outcomes, error codes, automation links—**see [`docs/layer-1-vr-tests.md`](docs/layer-1-vr-tests.md)**.
 
 ---
 
@@ -26,18 +26,20 @@ For a fully detailed and explicit enumeration of every test scenario—including
 
 ---
 
-## Example Test Matrix Table
+## VRG (VolumeReplicationGroup) API Operations
 
-| Test ID          | API                    | Scenario                                                  | Role/State         | Params       | Test Type     | Pass Criteria/Outcome                        |
-|------------------|------------------------|-----------------------------------------------------------|--------------------|--------------|---------------|-----------------------------------------------|
-| L1-E-001         | EnableVolumeReplication| Enable replication, mode=snapshot, healthy                | Primary/secondary  | snapshot     | functional    | VR created, replicationHandle set             |
-| L1-DIS-001       | DisableVolumeReplication| Disable, primary, peer up, force=false                   | Primary            | force=false  | functional    | Replication removed, volume RW                |
-| L1-PROM-002      | PromoteVolume          | Promote secondary, peer down, force=false                 | Secondary          | force=false  | negative      | Error: split-brain guarded                    |
-| L1-VRG-001       | VRG create             | VRG for 1 PVC, both healthy                              | Primary/secondary  | -            | functional    | VR, data, status healthy                      |
-| ...              | ...                    | ...                                                       | ...                | ...          | ...           | ...                                           |
+| Category                        | Coverage (Example)                                      |
+|----------------------------------|--------------------------------------------------------|
+| VRG Create/Delete               | Single PVC, multiple PVCs, cross-namespace, invalid selectors |
+| VRG Disable Operations          | Disable on primary/secondary, peer up/down, force true/false, array up/down |
+| VRG Failover/Failback           | Emergency failover, graceful failback, split-brain scenarios |
+| VRG Status/Monitoring           | Health checks, sync status, error reporting |
+| VRG S3 Integration              | S3 metadata handling, S3 unavailable scenarios |
 
 ---
 
-**This is just a summary! See [`layer-1-test-details`](layer-1-test-details.md) for the explicit, expanded tests list.**
+**For detailed test specifications and matrices:**
+- **CSI gRPC endpoints**: See [layer-1-vr-tests.md](layer-1-vr-tests.md) for explicit CSI API test enumeration
+- **VRG API operations**: See [layer-1-vrg-tests.md](layer-1-vrg-tests.md) for comprehensive VRG test scenarios
 
 ---
