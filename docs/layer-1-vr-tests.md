@@ -111,24 +111,36 @@ It is intended for use by certification tools, automation, and test writers.
 
 ## GetVolumeReplicationInfo
 
-| Test ID   | API                        | Scenario                                    | Node Role | Peer State | Params      | Test Type  | Setup/Input  | Expected Outcome                                  | Notes/Link |
-|-----------|----------------------------|---------------------------------------------|-----------|------------|-------------|-----------|--------------|---------------------------------------------------|------------|
-| L1-INFO-001| GetVolumeReplicationInfo  | Query for healthy replication                | Primary   | Up         | -           | functional| Volume in sync                                   | Returns lastSyncTime, status=healthy               |            |
-| ...       | ...                        | ...                                         | ...       | ...        | ...         | ...       | ...          | ...                                              | ...        |
+| Test ID   | API                        | Scenario                                    | Node Role | Peer State | Array State | Params      | Test Type  | Setup/Input  | Expected Outcome                                  | Notes/Link |
+|-----------|----------------------------|---------------------------------------------|-----------|------------|-------------|-------------|-----------|--------------|---------------------------------------------------|------------|
+| L1-INFO-001| GetVolumeReplicationInfo  | Query for healthy replication                | Primary   | Up         | Up          | -           | functional| Volume in sync, replication active               | Returns lastSyncTime, status=healthy, replicationHandle | See L1-PROM-002 for related promote scenario |
+| L1-INFO-002| GetVolumeReplicationInfo  | Query for healthy replication on secondary   | Secondary | Up         | Up          | -           | functional| Volume in sync, receiving replication            | Returns lastSyncTime, status=healthy, role=secondary    | See L1-DEM-002 for related demote scenario |
+| L1-INFO-003| GetVolumeReplicationInfo  | Query during sync operation                  | Primary   | Up         | Up          | -           | functional| Sync in progress                                 | Returns status=syncing, progress percentage             |            |
+| L1-INFO-004| GetVolumeReplicationInfo  | Query for degraded replication               | Primary   | Up         | Up          | -           | functional| Network issues, replication lagging              | Returns status=degraded, lastSyncTime old, error details| Related to L1-DIS-005, L1-PROM-003 peer down scenarios |
+| L1-INFO-005| GetVolumeReplicationInfo  | Query with peer unreachable                 | Primary   | Down       | Up          | -           | behavioral| Peer cluster unreachable                         | Returns status=disconnected, connection error details   | *Not Supported - unreachable storage not supported in current K8s CSI tests will be implemented in later stage |
+| L1-INFO-006| GetVolumeReplicationInfo  | Query for disabled replication               | Primary   | Up         | Up          | -           | functional| Replication disabled                             | Returns status=disabled, no replicationHandle           | See L1-DIS-001, L1-DIS-002 for disable scenarios |
+| L1-INFO-007| GetVolumeReplicationInfo  | Query with array unreachable                | Primary   | Up         | Down        | -           | behavioral| Storage array disconnected                        | Returns status=error, array connectivity error details  | *Not Supported - unreachable storage not supported in current K8s CSI tests will be implemented in later stage |
+| L1-INFO-008| GetVolumeReplicationInfo  | Query for non-existent volume               | N/A       | Up         | Up          | invalid-vol | negative  | Volume ID that doesn't exist                     | Returns gRPC NotFound error                              |            |
+| L1-INFO-009| GetVolumeReplicationInfo  | Query during split-brain condition          | Primary   | Partial    | Up          | -           | behavioral| Split-brain scenario detected                     | Returns status=split-brain, conflict details            | Related to L1-PROM-004, L1-DIS-013 force scenarios |
+| L1-INFO-010| GetVolumeReplicationInfo  | Query for never-enabled replication         | Primary   | Up         | Up          | -           | functional| Volume never had replication enabled             | Returns status=not-configured, no replication metadata  |            |
+| L1-INFO-011| GetVolumeReplicationInfo  | Query after invalid mirroringMode error     | Primary   | Up         | Up          | -           | functional| Enable failed due to invalid mirroringMode      | Returns status=not-configured, no replication metadata  | See L1-E-007 for related enable error |
+| L1-INFO-012| GetVolumeReplicationInfo  | Query after invalid interval parameter error| Primary   | Up         | Up          | -           | functional| Enable failed due to bad interval parameter     | Returns status=not-configured, no replication metadata  | See L1-E-004 for related enable error |
+| L1-INFO-013| GetVolumeReplicationInfo  | Query after secret reference error          | Primary   | Up         | Up          | -           | functional| Enable failed due to missing/invalid secret     | Returns status=error, FailedPrecondition details       | See L1-E-006 for related enable error |
+| L1-INFO-014| GetVolumeReplicationInfo  | Query after invalid time format error       | Primary   | Up         | Up          | -           | functional| Enable failed due to bad schedulingStartTime    | Returns status=not-configured, no replication metadata  | See L1-E-009 for related enable error |
 
-**GetVolumeReplicationInfo Test Count: 2+ scenarios (expandable)**
+**GetVolumeReplicationInfo Test Count: 14 scenarios**
 
 *For Volume Group Operations using VolumeReplication gRPC APIs with replicationsource field, see [layer-1-vrg-tests.md](layer-1-vrg-tests.md).*
 
 ---
 
-**Total VolumeReplication API Test Count: 45+ scenarios**
+**Total VolumeReplication API Test Count: 57+ scenarios**
 - EnableVolumeReplication: 9 scenarios
 - DisableVolumeReplication: 16 scenarios  
 - PromoteVolume: 8 scenarios
 - DemoteVolume: 8 scenarios
 - ResyncVolume: 2+ scenarios
-- GetVolumeReplicationInfo: 2+ scenarios
+- GetVolumeReplicationInfo: 14 scenarios
 
 *Note: Tests marked with "Not Supported" involve unreachable storage/cluster scenarios that are not supported in the current Kubernetes CSI test framework and will be implemented in later stage. See [disruptive tests documentation](https://github.com/nadavleva/kubernetes_csiaddontests/blob/docs/storage-test-framework/test/e2e/storage/README.md#disruptive-tests) for details.*
 
