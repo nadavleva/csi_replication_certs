@@ -21,6 +21,8 @@ This file contains Volume Group test scenarios for Layer-1 CSI Replication drive
 | L1-GRP-005| EnableVolumeReplication    | Enable group with mixed volume states       | Mixed       | replicationsource=group1 | negative    | Some volumes enabled, some disabled            | Operation fails, group state inconsistent                |                        |
 | L1-GRP-006| DisableVolumeReplication   | Force disable group, peer unreachable       | Enabled     | replicationsource=group1, force=true | behavioral | Group enabled, peer cluster down              | Group disabled with warnings, split-brain risk           |                        |
 
+**Volume Group Operations Test Count: 6 scenarios (Phase 1 - using VolumeReplication gRPC APIs)**
+
 ---
 
 **VolumeReplicationGroup (VRG) CRD Operations - Out of Scope for Phase 1**
@@ -89,6 +91,8 @@ This file contains Volume Group test scenarios for Layer-1 CSI Replication drive
 | L1-VRG-DIS-015 | VRG Disable   | Force disable on primary, primary array down     | Unknown       | Active          | Up        | P:Down/S:Up | force=true | negative   | Primary array disconnected, force attempted     | Still fails, cannot force without array access            |            |
 | L1-VRG-DIS-016 | VRG Disable   | Force disable on secondary, secondary array down | Active        | Unknown         | Up        | P:Up/S:Down | force=true | behavioral | Secondary array disconnected, force cleanup     | Forced cleanup, metadata inconsistency warnings           |            |
 
+**VRG Disable Operations Test Count: 16 scenarios (8 force=false + 8 force=true) - Out of Scope for Phase 1**
+
 ---
 
 ## VRG Creation and Lifecycle Operations
@@ -100,6 +104,8 @@ This file contains Volume Group test scenarios for Layer-1 CSI Replication drive
 | L1-VRG-CRE-003 | VRG Create    | Create VRG, secondary cluster unreachable        | P:Up/S:Down   | Bound       | Up       | -              | negative   | Secondary cluster network failure               | VRG creation delayed/degraded state                        |            |
 | L1-VRG-CRE-004 | VRG Create    | Create VRG, S3 unreachable                       | Both Up       | Bound       | Down     | -              | negative   | S3 metadata store unavailable                   | VRG creation fails, cannot store metadata                 |            |
 | L1-VRG-CRE-005 | VRG Create    | Create VRG, invalid PVC selector                 | Both Up       | None        | Up       | bad-selector   | negative   | PVC selector matches no resources               | VRG created but no VR resources, appropriate status       |            |
+
+**VRG Creation and Lifecycle Operations Test Count: 5 scenarios - Out of Scope for Phase 1**
 
 ---
 
@@ -146,3 +152,21 @@ This file contains Volume Group test scenarios for Layer-1 CSI Replication drive
 ---
 
 *This matrix provides comprehensive coverage of VRG operations with particular emphasis on disable scenarios as requested. Each test case includes detailed state specifications and expected outcomes for thorough conformance testing.*
+
+---
+
+**Total VRG Test Count Summary:**
+
+**Phase 1 - In Scope (Volume Group Operations using gRPC APIs):**
+- Volume Group Operations: 6 scenarios
+
+**Out of Scope for Phase 1 (VRG Kubernetes CRD Operations):**
+- VRG Disable Operations: 16 scenarios
+- VRG Creation/Lifecycle: 5 scenarios  
+- VRG Failover/Failback: 4+ scenarios
+- VRG Status/Monitoring: 3+ scenarios
+- VRG Deletion/Cleanup: 4+ scenarios
+- VRG Cross-Namespace: 3+ scenarios
+- **Total CRD Operations**: 35+ scenarios (future phases)
+
+---

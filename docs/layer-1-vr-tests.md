@@ -27,6 +27,8 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-E-005  | EnableVolumeReplication| Already enabled volume                | Primary    | Up         | (none)          | functional  | VR CR exists, rep enabled already             | Idempotent, operation succeeds with no change                |                        |
 | L1-E-006  | EnableVolumeReplication| Secret reference missing/invalid      | Primary    | Up         | secret=missing  | negative    | Bad rep. secret ref                            | gRPC FailedPrecondition error                                |                        |
 
+**EnableVolumeReplication Test Count: 6 scenarios**
+
 ---
 
 ## DisableVolumeReplication (all key permutations)
@@ -55,6 +57,8 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-DIS-015| DisableVolumeReplication   | Force disable, primary array down        | Primary    | Up         | Down        | force=true   | negative    | Primary array unreachable, force=true       | Still fails, cannot force without array access      |                        |
 | L1-DIS-016| DisableVolumeReplication   | Force disable, secondary array down      | Secondary  | Up         | Down        | force=true   | behavioral  | Secondary array unreachable, force=true     | Forced cleanup, metadata inconsistency warnings     |                        |
 
+**DisableVolumeReplication Test Count: 16 scenarios (8 force=false + 8 force=true)**
+
 ---
 
 ## PromoteVolume (Complete Test Matrix)
@@ -69,6 +73,8 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-PROM-006| PromoteVolume         | Promote, array unreachable, force=true    | Secondary  | Up         | Down        | force=true  | negative  | Secondary array disconnected, force attempted  | Still fails, cannot promote without array access   |            |
 | L1-PROM-007| PromoteVolume         | Promote with active I/O workload          | Secondary  | Up         | Up          | force=false | behavioral| Active workload on primary                     | Graceful promotion, I/O redirected                 |            |
 | L1-PROM-008| PromoteVolume         | Force promote with active I/O workload    | Secondary  | Up         | Up          | force=true  | behavioral| Active workload, force promotion              | Immediate promotion, potential I/O disruption warning|           |
+
+**PromoteVolume Test Count: 8 scenarios**
 
 ---
 
@@ -85,6 +91,8 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-DEM-007| DemoteVolume             | Demote with active I/O workload, force=false| Primary     | Up         | Up          | force=false | behavioral| Active workload, graceful demotion           | Pending I/O completed, then demoted to RO   |            |
 | L1-DEM-008| DemoteVolume             | Force demote with active I/O workload       | Primary     | Up         | Up          | force=true  | behavioral| Active workload, force=true                  | Immediate demotion, pending I/O may be dropped, warning issued |  |
 
+**DemoteVolume Test Count: 8 scenarios**
+
 ---
 
 ## ResyncVolume
@@ -93,6 +101,8 @@ It is intended for use by certification tools, automation, and test writers.
 |-----------|------------------------|-----------------------------------------------|-----------|------------|-------------|-----------|--------------|---------------------------------------------------|------------|
 | L1-RSYNC-001| ResyncVolume         | Resync secondary after split-brain            | Secondary | Up         | -           | functional| Split-brain resolved                            | Full resync completes, data consistent             |            |
 | ...       | ...                    | ...                                           | ...       | ...        | ...         | ...       | ...          | ...                                              | ...        |
+
+**ResyncVolume Test Count: 2+ scenarios (expandable)**
 
 ---
 
@@ -103,6 +113,18 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-INFO-001| GetVolumeReplicationInfo  | Query for healthy replication                | Primary   | Up         | -           | functional| Volume in sync                                   | Returns lastSyncTime, status=healthy               |            |
 | ...       | ...                        | ...                                         | ...       | ...        | ...         | ...       | ...          | ...                                              | ...        |
 
+**GetVolumeReplicationInfo Test Count: 2+ scenarios (expandable)**
+
 *For Volume Group Operations using VolumeReplication gRPC APIs with replicationsource field, see [layer-1-vrg-tests.md](layer-1-vrg-tests.md).*
+
+---
+
+**Total VolumeReplication API Test Count: 42+ scenarios**
+- EnableVolumeReplication: 6 scenarios
+- DisableVolumeReplication: 16 scenarios  
+- PromoteVolume: 8 scenarios
+- DemoteVolume: 8 scenarios
+- ResyncVolume: 2+ scenarios
+- GetVolumeReplicationInfo: 2+ scenarios
 
 ---
