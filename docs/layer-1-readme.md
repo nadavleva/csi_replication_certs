@@ -12,6 +12,15 @@ This document provides a comprehensive overview of Layer 1 CSI Replication Add-o
   - Executed via `kubectl` and CSI replication sidecars
   - Runs against live Kubernetes clusters with replication-capable CSI drivers
   - Multi-cluster test scenarios with peer connectivity validation
+- **Test-to-Driver Connection Flow**:
+  ```
+  Test Code → Kubernetes API (CRs) → Kubernetes Components → gRPC → CSI Driver
+  ```
+  - **Test Code**: Ginkgo/Gomega test implementations create and manage Kubernetes resources
+  - **Kubernetes API (CRs)**: VolumeReplication, VolumeReplicationClass custom resources
+  - **Kubernetes Components**: CSI external components (csi-addons-controller, external-provisioner)
+  - **gRPC**: CSI Replication Add-on gRPC calls (EnableVolumeReplication, etc.)
+  - **CSI Driver**: Storage driver implementation handling replication operations
 - **Cluster Requirements**:
   - **Two clusters** with CSI drivers supporting replication capabilities
   - **Ceph as benchmark**: Reference implementation for replication-capable CSI drivers
@@ -180,6 +189,69 @@ This testing layer implements a **conditional execution model**:
 - **Capability detection** occurs during test initialization phase  
 - **Graceful degradation** when replication features are not supported
 - **No false failures** for drivers that legitimately don't support replication
+
+## Driver Feature/Mode Detection & Skip Logic
+
+The test framework implements intelligent feature detection to ensure tests only run when appropriate driver capabilities are available:
+
+### Mirroring Mode Detection
+- **Automatic Discovery**: Tests detect which mirroring modes (`snapshot`, `journal`) are supported by each CSI driver
+- **Dynamic Skipping**: Tests requiring unsupported modes are automatically skipped with appropriate messaging
+- **Mode-Specific Validation**: Parameter validation (e.g., scheduling parameters) is enforced based on detected capabilities
+
+### Skip Logic Implementation
+```go
+// Example skip logic
+if !driver.SupportsMode("journal") {
+    framework.Skipf("CSI driver %s does not support journal mirroring mode", driver.Name)
+}
+```
+
+### Feature Detection Categories
+1. **Core Replication Support**: Basic EnableVolumeReplication/DisableVolumeReplication capability
+2. **Mirroring Modes**: Support for snapshot vs journal-based replication
+3. **Scheduling Parameters**: Support for schedulingInterval and schedulingStartTime
+4. **Group Operations**: Support for replicationsource parameter for volume groups
+5. **Force Operations**: Support for force parameter in disable/promote/demote operations
+
+**Reference**: For detailed skip logic implementation, see [CSI Test Framework Documentation](https://github.com/nadavleva/kubernetes_csiaddontests/blob/docs/storage-test-framework/test/e2e/storage/README.md)
+
+## Prerequisites and Cluster Bootstrap Validation
+
+The test framework performs comprehensive pre-flight validation to ensure all required components are properly configured:
+
+### StorageClass Validation
+- **Presence Check**: Verifies required StorageClass exists with appropriate provisioner
+- **Parameter Validation**: Confirms replication-related parameters are correctly set
+- **Provisioner Compatibility**: Validates provisioner supports CSI replication add-on
+
+### VolumeReplicationClass Validation
+- **Resource Availability**: Confirms VolumeReplicationClass CRDs are installed and accessible
+- **Configuration Check**: Validates replication parameters (schedulingInterval, mirroringMode)
+- **Secret References**: Verifies referenced secrets exist and contain required credentials
+
+### Cluster Connectivity Validation
+- **Multi-Cluster Setup**: Validates connectivity between primary and secondary clusters
+- **Network Policy Check**: Confirms required ports and protocols are accessible
+- **Peer Authentication**: Validates cluster-to-cluster authentication mechanisms
+
+### Pre-Check Failure Handling
+```yaml
+# Example validation failure scenarios:
+- Missing StorageClass: Test suite skipped with clear error message
+- Invalid VolumeReplicationClass: Specific replication tests skipped
+- Connectivity Issues: Multi-cluster tests marked as skipped
+- Missing Secrets: Authentication-dependent tests bypassed
+```
+
+### Bootstrap Requirements
+1. **CSI Driver Installation**: Driver pods running and healthy
+2. **CSI Add-ons Components**: csi-addons-controller deployed and operational
+3. **Required CRDs**: VolumeReplication, VolumeReplicationClass CRDs installed
+4. **RBAC Permissions**: Service accounts have necessary permissions for replication operations
+5. **Storage Backend**: Underlying storage system configured for replication
+
+**Graceful Degradation**: When prerequisites are missing, tests fail gracefully with descriptive messages rather than cryptic errors, enabling easy troubleshooting and environment validation.
 
 ## Feature Flag Implementation Strategy
 Feature flags are used to control the exposure of replication features. The strategy involves:
