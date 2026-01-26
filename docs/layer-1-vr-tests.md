@@ -103,6 +103,6 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-INFO-001| GetVolumeReplicationInfo  | Query for healthy replication                | Primary   | Up         | -           | functional| Volume in sync                                   | Returns lastSyncTime, status=healthy               |            |
 | ...       | ...                        | ...                                         | ...       | ...        | ...         | ...       | ...          | ...                                              | ...        |
 
-*For comprehensive VRG (VolumeReplicationGroup) test coverage, see [layer-1-vrg-tests.md](layer-1-vrg-tests.md).*
+*For Volume Group Operations using VolumeReplication gRPC APIs with replicationsource field, see [layer-1-vrg-tests.md](layer-1-vrg-tests.md).*
 
 ---

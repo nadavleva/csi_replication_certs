@@ -1,19 +1,31 @@
-# Layer-1 VRG (VolumeReplicationGroup) Test Matrix: Full Expanded Enumeration
+# Layer-1 VRG Test Matrix: Volume Group Operations Using CSI gRPC APIs
 
-This file fully enumerates all VolumeReplicationGroup API scenarios for Layer-1 CSI Replication driver conformance, with particular focus on disable operations across various cluster and peer states.
+This file contains Volume Group test scenarios for Layer-1 CSI Replication driver conformance using **VolumeReplication gRPC APIs** with the **replicationsource** field.
 
-**Columns:**
-- Test ID
-- API Operation
-- Scenario/Description
-- Primary State / Secondary State / Peer Connectivity / Array State
-- Parameters (e.g., force)
-- Test Type (functional, negative, behavioral)
-- Input/Setup Steps
-- Expected Result/Pass Criteria
-- Notes/Automation Link/Reference
+**Important**: VolumeReplicationGroup (VRG) Kubernetes CRD tests are **not in scope for Phase 1**. This file focuses on Volume Group operations using CSI gRPC APIs only.
+
+**Technical Implementation**: Volume group replication uses the same VolumeReplication gRPC APIs (EnableVolumeReplication, DisableVolumeReplication, PromoteVolume, DemoteVolume, etc.) with the **replicationsource** field to specify group membership.
 
 ---
+
+## Volume Group Operations (using VolumeReplication gRPC APIs with replicationsource field)
+
+*Note: These are simplified test cases focusing on core group scenarios using VolumeReplication RPC with replicationsource=group parameter.*
+
+| Test ID   | RPC API                    | Scenario                                    | Group State | Params          | Test Type   | Setup/Input                                    | Expected Outcome                                          | Notes/Link             |
+|-----------|----------------------------|---------------------------------------------|-------------|-----------------|-------------|------------------------------------------------|-----------------------------------------------------------|------------------------|
+| L1-GRP-001| EnableVolumeReplication    | Enable replication for volume group         | All disabled| replicationsource=group1 | functional  | 3 volumes in group, all healthy                | All volumes in group enabled for replication             |                        |
+| L1-GRP-002| DisableVolumeReplication   | Disable replication for volume group        | All enabled | replicationsource=group1 | functional  | 3 volumes in group, all replicating            | All volumes in group disabled, group consistent          |                        |
+| L1-GRP-003| PromoteVolume              | Promote volume group to primary             | Secondary   | replicationsource=group1 | functional  | Volume group in secondary state                | All volumes in group promoted to primary                 |                        |
+| L1-GRP-004| DemoteVolume               | Demote volume group to secondary            | Primary     | replicationsource=group1 | functional  | Volume group in primary state                  | All volumes in group demoted to secondary                |                        |
+| L1-GRP-005| EnableVolumeReplication    | Enable group with mixed volume states       | Mixed       | replicationsource=group1 | negative    | Some volumes enabled, some disabled            | Operation fails, group state inconsistent                |                        |
+| L1-GRP-006| DisableVolumeReplication   | Force disable group, peer unreachable       | Enabled     | replicationsource=group1, force=true | behavioral | Group enabled, peer cluster down              | Group disabled with warnings, split-brain risk           |                        |
+
+---
+
+**VolumeReplicationGroup (VRG) CRD Operations - Out of Scope for Phase 1**
+
+*The following VRG CRD-based operations are not included in Phase 1 testing scope:*
 
 ## VRG Disable Operations - Core Scenarios
 

@@ -31,20 +31,21 @@
   - [Kubevirt Storage Checkup CSI API Summary](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-replication-api.md)
   - [CSI Addons Volume Group Replication API & Arch](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-volume-group-replication-api.md)
 - **Functionality Covered**: 
-  - **VolumeReplication APIs (CSI gRPC)**:
+  - **VolumeReplication APIs (CSI gRPC)** - Individual volume operations:
     - EnableVolumeReplication
     - DisableVolumeReplication
     - PromoteVolume
     - DemoteVolume
     - ResyncVolume
     - GetVolumeReplicationInfo
-  - **VolumeReplicationGroup APIs (Kubernetes CRD)**:
-    - EnableVolumeGroupReplication
-    - DisableVolumeGroupReplication
-    - PromoteVolumeGroup
-    - DemoteVolumeGroup
-    - ResyncVolumeGroup
-    - GetVolumeGroupReplicationInfo
+  - **Volume Group Operations** - Group operations using VolumeReplication gRPC APIs with `replicationsource` field:
+    - EnableVolumeReplication (with replicationsource=group)
+    - DisableVolumeReplication (with replicationsource=group)
+    - PromoteVolume (with replicationsource=group)
+    - DemoteVolume (with replicationsource=group)
+    - ResyncVolume (with replicationsource=group)
+    - GetVolumeReplicationInfo (with replicationsource=group)
+- **Note**: VolumeReplicationGroup (VRG) Kubernetes CRD operations are **not included** in this test plan. VRG operations are tested using the standard VolumeReplication gRPC APIs with the replicationsource parameter to specify group membership.
 - **Criteria**: All functionalities must operate correctly. (Pass/Fail)
 - **Status**: In progress.
 

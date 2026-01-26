@@ -21,7 +21,9 @@ This document provides a comprehensive overview of Layer 1 CSI Replication Add-o
 ## API Categories
 
 ## VolumeReplication RPC Operations (CSI gRPC)
-The following RPC operations test individual volume replication via CSI gRPC endpoints:
+The following RPC operations test both individual volume replication and volume group replication via CSI gRPC endpoints:
+
+### Individual Volume Operations
 1. **EnableVolumeReplication** - Initiates the replication process for the specified volume.
 2. **DisableVolumeReplication** - Stops the replication process for the specified volume.
 3. **PromoteVolume** - Promotes a volume to be the primary for replication purposes.
@@ -29,18 +31,21 @@ The following RPC operations test individual volume replication via CSI gRPC end
 5. **ResyncVolume** - Resynchronizes the data of a volume with its replica.
 6. **GetVolumeReplicationInfo** - Retrieves the replication status and information of a volume.
 
+### Volume Group Operations
+The same CSI gRPC APIs above handle volume group replication by using the **replicationsource** field to specify group membership. Volume group testing focuses on:
+- **Happy path scenarios** - Basic enable/disable/promote/demote operations on volume groups
+- **Negative scenarios** - Error handling when group operations fail
+- **Mixed scenarios** - Operations on groups with mixed volume states
+
 **For detailed VolumeReplication test matrix**: See [layer-1-vr-tests.md](layer-1-vr-tests.md)
 
-## VolumeReplicationGroup Operations (Kubernetes CRD)
-The following operations test volume group replication via Kubernetes CRD APIs:
-1. **EnableVolumeGroupReplication** - Initiates replication for a group of volumes.
-2. **DisableVolumeGroupReplication** - Stops replication for a group of volumes.
-3. **PromoteVolumeGroup** - Promotes a volume group to primary state.
-4. **DemoteVolumeGroup** - Demotes a volume group to secondary state.
-5. **ResyncVolumeGroup** - Resynchronizes data for a group of volumes.
-6. **GetVolumeGroupReplicationInfo** - Retrieves group replication status.
+## VolumeReplicationGroup Operations
 
-**For detailed VRG test matrix**: See [layer-1-vrg-tests.md](layer-1-vrg-tests.md)
+**Note**: VolumeReplicationGroup (VRG) Kubernetes CRD tests are **not in scope for Phase 1**. Phase 1 focuses on CSI gRPC API testing only.
+
+For **Volume Group Operations** using CSI gRPC APIs, the same VolumeReplication RPC endpoints handle group operations by using the **replicationsource** field to specify group membership. These group operations are tested as part of the CSI gRPC API validation.
+
+**For detailed Volume Group test matrix using gRPC APIs**: See [layer-1-vrg-tests.md](layer-1-vrg-tests.md)
 
 ## Official References
 - [CSI Add-ons Specification - Replication](https://github.com/csi-addons/spec/tree/main/replication)
