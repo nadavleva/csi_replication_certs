@@ -204,36 +204,11 @@ def build_rows(junit_runs: list[dict]) -> list[list]:
 
 def build_summary_rows(data_rows: list[list], num_runs: int) -> list[list]:
     """Build summary rows counting PASS/FAIL/SKIP per run."""
-    # Metadata columns = len(METADATA_HEADERS)
-    meta_len = len(METADATA_HEADERS)
     run_width = 4  # date, status, duration, notes
 
     summaries = []
-    for run_idx in range(num_runs):
-        status_col = meta_len + run_idx * run_width + 1  # 0-based index
-        counts = {"PASS": 0, "FAIL": 0, "SKIP": 0, "BLOCKED": 0, "": 0}
-        for row in data_rows:
-            val = row[status_col] if status_col < len(row) else ""
-            counts[val if val in counts else ""] += 1
 
-        run_label = f"Run {run_idx + 1}"
-        row_pass = ["", "", f"PASS  ({run_label})", "", "", "", "", "", "", "", ""] + \
-            [""] * (run_idx * run_width) + \
-            ["", str(counts["PASS"]), "", ""]
-        row_fail = ["", "", f"FAIL  ({run_label})", "", "", "", "", "", "", "", ""] + \
-            [""] * (run_idx * run_width) + \
-            ["", str(counts["FAIL"]), "", ""]
-        row_skip = ["", "", f"SKIP  ({run_label})", "", "", "", "", "", "", "", ""] + \
-            [""] * (run_idx * run_width) + \
-            ["", str(counts["SKIP"]), "", ""]
-        row_block = ["", "", f"BLOCKED ({run_label})", "", "", "", "", "", "", "", ""] + \
-            [""] * (run_idx * run_width) + \
-            ["", str(counts["BLOCKED"]), "", ""]
-        row_total = ["", "", f"TOTAL  ({run_label})", "", "", "", "", "", "", "", ""] + \
-            [""] * (run_idx * run_width) + \
-            ["", str(len(data_rows)), "", ""]
-
-    # Simpler flat summary at the bottom
+    # Flat summary at the bottom: one column group per run
     summary_rows = [[""] * (len(METADATA_HEADERS) + num_runs * run_width)]  # blank separator
 
     summary_header = ["", "SUMMARY", "", "", "", "", "", "", "", "", ""]
