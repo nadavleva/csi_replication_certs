@@ -1,6 +1,10 @@
 # Ceph CSI Driver Reference Implementation
 
-This document provides a detailed mapping of how the Ceph CSI driver implements Layer 1 CSI Replication Add-on tests.  Use this as a reference for implementing tests in other CSI drivers.
+Ceph CSI is the **reference driver** for the Layer 1 CSI-Addons Spec track.
+
+**Certification e2e** is not this unit-test file. It is `make test-replication-e2e` in [kubernetes-csi-addons](https://github.com/nadavleva/kubernetes-csi-addons) against a live Ceph RBD cluster. See [layer-1-readme.md](layer-1-readme.md).
+
+The tables below map Layer 1 scenario IDs to **Ceph CSI unit tests** (`internal/csi-addons/rbd/replication_test.go`) only. They do not replace the e2e suite.
 
 ---
 

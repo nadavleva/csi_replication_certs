@@ -1,10 +1,10 @@
-# Layer-1 VRG Test Matrix: Volume Group Operations Using CSI gRPC APIs
+# Layer 1 CSI-Addons Spec — Volume Group Test Matrix
 
-This file contains Volume Group test scenarios for Layer-1 CSI Replication driver conformance using **VolumeReplication gRPC APIs** with the **replicationsource** field.
+Volume group scenarios for the **CSI-Addons Spec track** of Layer 1 (same layer as core CSI E2E). See [test-layers.md](test-layers.md).
 
-**Important**: VolumeReplicationGroup (VRG) Kubernetes CRD tests are **not in scope for Phase 1**. This file focuses on Volume Group operations using CSI gRPC APIs only.
+**Not in `test-replication-e2e` yet.** That suite covers individual VolumeReplication only. Generic VGR CR e2e: `make test-e2e-volumegroupreplication` in kubernetes-csi-addons (not this matrix).
 
-**Technical Implementation**: Volume group replication uses the same VolumeReplication gRPC APIs (EnableVolumeReplication, DisableVolumeReplication, PromoteVolume, DemoteVolume, etc.) with the **replicationsource** field to specify group membership.
+These cases use VolumeReplication gRPC APIs with **replicationsource**. VolumeReplicationGroup CRD flows are out of scope for this matrix.
 
 ---
 

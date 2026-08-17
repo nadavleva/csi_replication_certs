@@ -1,312 +1,128 @@
-# Layer 1 CSI Replication Add-on Tests
+# Layer 1 — CSI-Addons Spec Track
 
-## Overview
-This document provides a comprehensive overview of Layer 1 CSI Replication Add-on tests. This is the primary focus of the project, aimed at ensuring the reliability and efficiency of the replication features. **This is an optional testing layer** that is only triggered when CSI drivers explicitly advertise replication capability support through CSI driver capability discovery or CRD annotations.
+Layer 1 is **CSI driver protocol certification**. This document is the **CSI-Addons Spec track** (replication addon-spec). The **CSI Spec track** (core volume e2e) is upstream Kubernetes CSI tests.
 
-## Architecture
-- **Technical Stack**: 
-  - Go-based e2e tests
-  - Ginkgo BDD framework 
-  - Gomega matchers
-- **Execution Environment**: 
-  - Executed via `kubectl` and CSI replication sidecars
-  - Runs against live Kubernetes clusters with replication-capable CSI drivers
-  - Multi-cluster test scenarios with peer connectivity validation
-- **Test-to-Driver Connection Flow**:
-  ```
-  Test Code → Kubernetes API (CRs) → Kubernetes Components → gRPC → CSI Driver
-  ```
-  - **Test Code**: Ginkgo/Gomega test implementations create and manage Kubernetes resources
-  - **Kubernetes API (CRs)**: VolumeReplication, VolumeReplicationClass custom resources
-  - **Kubernetes Components**: CSI external components (csi-addons-controller, external-provisioner)
-  - **gRPC**: CSI Replication Add-on gRPC calls (EnableVolumeReplication, etc.)
-  - **CSI Driver**: Storage driver implementation handling replication operations
-- **Cluster Requirements**:
-  - **Two clusters** with CSI drivers supporting replication capabilities
-  - **Ceph as benchmark**: Reference implementation for replication-capable CSI drivers
-  - Network connectivity between clusters for peer communication
-  - S3-compatible storage for advanced disaster recovery scenarios (optional for basic VRG operations)
+Until the replication addon-spec is **approved into the CSI spec**, the tracks stay in different repos. After approval they **merge** into CSI E2E. Architecture: [test-layers.md](test-layers.md).
 
-## API Categories
+This track is **optional**: it runs when the driver advertises `VOLUME_REPLICATION` on `CSIAddonsNode`. Missing capability is a skip / controller error, not a false pass.
 
-## VolumeReplication RPC Operations (CSI gRPC)
-The following RPC operations test both individual volume replication and volume group replication via CSI gRPC endpoints:
+## Implementation (executable tests)
 
-### Individual Volume Operations
-1. **EnableVolumeReplication** - Initiates the replication process for the specified volume.
-2. **DisableVolumeReplication** - Stops the replication process for the specified volume.
-3. **PromoteVolume** - Promotes a volume to be the primary for replication purposes.
-4. **DemoteVolume** - Demotes a volume to a secondary state.
-5. **ResyncVolume** - Resynchronizes the data of a volume with its replica.
-6. **GetVolumeReplicationInfo** - Retrieves the replication status and information of a volume.
+**Home:** [kubernetes-csi-addons](https://github.com/nadavleva/kubernetes-csi-addons)  
+**Package:** `test/e2e/replication/`  
+**Command:** `make test-replication-e2e` or `./hack/run-replication-e2e.sh`  
+**Suite docs:** [replication-e2e-suite.md](https://github.com/nadavleva/kubernetes-csi-addons/blob/main/docs/testing/replication-e2e-suite.md)
 
-### Volume Group Operations
-The same CSI gRPC APIs above handle volume group replication by using the **replicationsource** field to specify group membership. Volume group testing focuses on:
-- **Happy path scenarios** - Basic enable/disable/promote/demote operations on volume groups
-- **Negative scenarios** - Error handling when group operations fail
-- **Mixed scenarios** - Operations on groups with mixed volume states
+This repo (`csi_replication_certs`) holds the **written matrix**. The **running suite** is kubernetes-csi-addons — not kubernetes_csiaddontests.
 
-**For detailed VolumeReplication test matrix**: See [layer-1-vr-tests.md](layer-1-vr-tests.md)
+### Path under test
 
-## VolumeReplicationGroup Operations
+```
+Test  →  VolumeReplication / VolumeReplicationClass CR
+      →  CSI-Addons controller (VOLUME_REPLICATION capability)
+      →  sidecar gRPC  →  CSI driver
+      ←  VR status / conditions  (what tests assert)
+```
 
-**Note**: VolumeReplicationGroup (VRG) Kubernetes CRD tests are **not in scope for Phase 1**. Phase 1 focuses on CSI gRPC API testing only.
+| RPC | How the suite invokes it |
+|-----|--------------------------|
+| EnableVolumeReplication | Create VR (`replicationState: primary` or `secondary`) |
+| DisableVolumeReplication | Delete VR (disable on finalizer) |
+| PromoteVolume | Patch `replicationState: primary` |
+| DemoteVolume | Patch `replicationState: secondary` |
+| ResyncVolume | Patch `replicationState: resync` (controller uses force=true) |
+| GetVolumeReplicationInfo | Assert VR status after ops; L1-INFO-008 standalone |
 
-For **Volume Group Operations** using CSI gRPC APIs, the same VolumeReplication RPC endpoints handle group operations by using the **replicationsource** field to specify group membership. These group operations are tested as part of the CSI gRPC API validation.
+### test-replication-e2e status
 
-**For detailed Volume Group test matrix using gRPC APIs**: See [layer-1-vrg-tests.md](layer-1-vrg-tests.md)
+| API | IDs | Status |
+|-----|-----|--------|
+| Enable | L1-E-001 … 009 | Implemented (`enable_volumereplication_test.go`) |
+| Disable | L1-DIS-001…006, 009…012 | Implemented (`disable_volumereplication_test.go`) |
+| Promote | L1-PROM-001…004, 007, 008 | Implemented; **005/006 scaffold** (array unreachable) |
+| Demote | L1-DEM-001…004, 007, 008 | Implemented; **005/006 scaffold** (array unreachable) |
+| Resync | L1-RSYNC-001 … 006 | Implemented (`resync_volumereplication_test.go`) |
+| GetInfo | INFO-001, 005, 008, 011–014 | Implemented (008 standalone; others with Enable) |
+| Full DR smoke | `full_dr_test.go` | Implemented |
 
-## Official References
-- [CSI Add-ons Specification - Replication](https://github.com/csi-addons/spec/tree/main/replication)
-- [CSI Add-ons Kubernetes Integration](https://github.com/csi-addons/kubernetes-csi-addons)
-- [KubeVirt Storage Checkup](https://github.com/kiagnose/kubevirt-storage-checkup)
-- [CSI Replication Add-on API Summary](https://github.com/nadavleva/kubevirt-storage-checkup/blob/main/docs/csi-addons-replication-api.md)
+**Not in this suite:** DIS-007/008/013–016 (array down); PROM-009–013 (failover intent, Issue #33); VRG matrix ([layer-1-vrg-tests.md](layer-1-vrg-tests.md)). Generic VGR e2e: `make test-e2e-volumegroupreplication` (separate, not the L1 matrix).
 
-## Test Categories Summary
-The tests are comprehensively categorized covering both VolumeReplication (CSI gRPC) and VolumeReplicationGroup operations:
+~43 specs, ~39 runnable. Written scenarios: [layer-1-vr-tests.md](layer-1-vr-tests.md).
 
-### VolumeReplication Tests (CSI gRPC)
-1. **EnableVolumeReplication** - Mode variants, error cases, idempotent operations
-2. **DisableVolumeReplication** - All cluster/peer/array state combinations with force parameters
-3. **PromoteVolume** - Healthy/degraded states with force options
-4. **DemoteVolume** - Role transitions and error conditions
-5. **ResyncVolume** - Split-brain recovery and synchronization scenarios
-6. **GetVolumeReplicationInfo** - Health status and monitoring test cases
-7. **Volume Group Operations** - Group operations using replicationsource field
+### How to run
 
-### VolumeReplicationGroup Tests (Out of Scope for Phase 1)
-1. **VRG Disable Operations** - Core scenarios covering active/disabled replication states with force parameters
-2. **VRG Creation/Lifecycle** - Single/multiple PVC scenarios with cluster state variations
-3. **VRG Failover/Failback** - Emergency and planned failover scenarios
-4. **VRG Status/Monitoring** - Health checks and error reporting
-5. **VRG Deletion/Cleanup** - Resource cleanup with various dependency states
-6. **VRG Cross-Namespace** - Multi-namespace and multi-cluster scenarios
-
-*For specific test counts, see the test matrices in [layer-1-vr-tests.md](layer-1-vr-tests.md) and [layer-1-vrg-tests.md](layer-1-vrg-tests.md)*
-
-## Prerequisites
-Before running the tests, ensure the following prerequisites are met:
-- **Two Kubernetes clusters** set up and available with network connectivity between them.
-- **CSI driver supporting replication** installed and configured on both clusters (Ceph CSI driver recommended as benchmark).
-- CSI driver must **advertise replication capabilities** through:
-  - CSI driver capability discovery, OR
-  - CRD annotations indicating replication support
-- Access to required RBAC permissions to perform replication operations on both clusters.
-- **Network connectivity** between clusters for peer communication and data replication.
-- **S3-compatible storage** accessible from both clusters (optional - only required for advanced disaster recovery scenarios and external metadata persistence)
-
-## Setting Up Clusters for Testing
-
-For detailed instructions on setting up a local multi-cluster environment for CSI replication testing, see the complete guide:
-
-**[Setting Up Local Environment for CSI Replication API Testing](https://github.com/nadavleva/my-ramen-playground/blob/main/docs/testing/local-environment-setup.md)**
-
-### Quick Setup Summary
-
-The testing environment uses three minikube clusters:
-- **Primary cluster (dr1)**: Active cluster where applications run initially
-- **Secondary cluster (dr2)**: Standby cluster for failover/relocation  
-- **Hub cluster**: Manages multi-cluster operations via OCM (Open Cluster Management)
-
-**Key Components:**
-- Ceph Storage with RBD mirroring between clusters
-- CSI Addons for replication API support
-- VolumeReplicationClasses with different sync intervals (1m, 5m)
-
-**Setup Commands:**
 ```bash
-# Activate environment
-cd test && source venv
+# Clone implementation repo
+git clone https://github.com/nadavleva/kubernetes-csi-addons.git
+cd kubernetes-csi-addons
 
-# Setup host for testing (run once)
-drenv setup envs/regional-dr.yaml
+# Single cluster (current kubeconfig)
+make test-replication-e2e
 
-# Start the multi-cluster environment (20-30 minutes)
-drenv start envs/regional-dr.yaml
+# Full DR (primary DR1, secondary DR2)
+DR1_CONTEXT=dr1 DR2_CONTEXT=dr2 \
+REPLICATION_SECRET_NAME=rook-csi-rbd-provisioner \
+REPLICATION_SECRET_NAMESPACE=rook-ceph \
+make test-replication-e2e
+
+# One spec
+GINKGO_FOCUS="L1-E-001" ./hack/run-replication-e2e.sh
+
+make clean-replication-e2e
+./hack/diagnose-replication-vr.sh
 ```
 
-**Testing Access:**
-```bash
-# Switch between cluster contexts
-kubectl config use-context dr1  # Primary cluster
-kubectl config use-context dr2  # Secondary cluster
+Requires: live cluster, CRDs, CSI-Addons controller, CSI driver with replication (Ceph RBD reference). `USE_EXISTING_CLUSTER=true` is set by the run script. Do not use `make test` (envtest, no real driver).
 
-# Deploy and test applications
-test/basic-test/deploy dr1
-test/basic-test/enable-dr dr1
-```
+| Variable | Role | Default |
+|----------|------|---------|
+| `STORAGE_CLASS` | PVC class | `rook-ceph-block` |
+| `CSI_PROVISIONER` | Must match `CSIAddonsNode.spec.driver.name` | `rook-ceph.rbd.csi.ceph.com` |
+| `REPLICATION_SECRET_NAME` / `_NAMESPACE` | Driver secret | Per-namespace placeholder |
+| `GINKGO_FOCUS` | Spec filter | all |
+| `DR1_CONTEXT` / `DR2_CONTEXT` | Full DR | unset (single cluster) |
+| `E2E_FAULT_INJECTOR` | `iptables` / `networkfence` / `none` | iptables |
+| `REPLICATION_POLL_TIMEOUT` | Seconds to wait Replicating/Completed | 300 |
+| `REPLICATION_TEST_TIMEOUT` | Whole suite | 30m |
 
-## CSI Replication API Parameters
+Logs: `Logs/replication-e2e_<timestamp>.log`. JUnit under `Reports/`.
 
-The CSI Replication APIs support various parameters for controlling replication behavior. For comprehensive parameter documentation, see:
+**Single cluster:** enable, disable-on-primary, INFO-008, idempotent primary.  
+**Full DR:** secondary PVC from mirror, promote/demote/resync, peer fence, disable-on-secondary. Unset contexts → those specs skip (`SkipIfNotFullDR`).
 
-**[CSI Replication API Parameters and Values](https://github.com/nadavleva/my-ramen-playground/blob/main/docs/testing/replication-parameters.md)**
+Peer-down: iptables DaemonSet (default) or NetworkFence CRs. That is **network** partition, not array unreachable (Issues #9, #13).
 
-### Core Parameters
+## Scenario matrices (this repo)
 
-| Parameter | Type | Description | Values | Default | Used In |
-|-----------|------|-------------|---------|---------|---------|
-| **mirroringMode** | string | RBD mirroring mode | "snapshot", "journal" | "snapshot" | EnableVolumeReplication |
-| **force** | bool | Force operations | "true", "false" | "false" | DisableVolumeReplication |
-| **schedulingInterval** | string | Snapshot interval | "1m", "1h", "1d" | - | EnableVolumeReplication |
-| **schedulingStartTime** | string | ISO 8601 start time | "14:00:00-05:00" | - | EnableVolumeReplication |
-| **flattenMode** | string | Parent image handling | "never", "force" | "never" | EnableVolumeReplication |
-| **replicationsource** | string | Volume group identifier | "group1", "group2" | - | All APIs (for groups) |
+- Individual volumes: [layer-1-vr-tests.md](layer-1-vr-tests.md)
+- Volume groups: [layer-1-vrg-tests.md](layer-1-vrg-tests.md) (not yet in `test-replication-e2e`)
+- Summary: [layer-1-test-cases.md](layer-1-test-cases.md)
 
-### Mirroring Modes
+## RPCs covered
 
-- **snapshot** (default): Uses RBD snapshots for periodic replication. Supports scheduling parameters.
-- **journal**: Uses RBD journaling for real-time replication. Does not support scheduling parameters.
+Enable, Disable, Promote, Demote, Resync, GetVolumeReplicationInfo. Group ops use the same RPCs with `replicationsource` (matrix only; e2e pending).
 
-### Parameter Examples
+## Parameters (driver / VRC)
 
-**Enable Volume Replication - Snapshot Mode:**
-```yaml
-parameters:
-  mirroringMode: "snapshot"
-  schedulingInterval: "1h"
-  schedulingStartTime: "14:00:00-05:00"
-  flattenMode: "never"
-```
+| Parameter | Values | Used in |
+|-----------|--------|---------|
+| mirroringMode | snapshot, journal | Enable |
+| schedulingInterval | e.g. 1m, 1h | Enable (snapshot) |
+| schedulingStartTime | ISO-8601 | Enable |
+| force | true / false | Disable, Promote, Demote |
+| replicationsource | group id | Group RPCs (future e2e) |
 
-**Enable Volume Group Replication:**
-```yaml
-parameters:
-  mirroringMode: "snapshot"
-  schedulingInterval: "5m"
-  replicationsource: "group1"
-```
+## Pass / fail
 
-**Disable Volume Replication with Force:**
-```yaml
-parameters:
-  force: "true"
-```
+- Assertions on VR `Status.State` and conditions (`Replicating`, `Completed`, `Degraded`).
+- No false fail when replication is not advertised.
+- Full DR / fence specs skip with a reason when the environment cannot run them.
 
-## Optional Testing Framework
-This testing layer implements a **conditional execution model**:
-- Tests are **automatically skipped** if CSI drivers do not advertise replication capabilities
-- **Capability detection** occurs during test initialization phase  
-- **Graceful degradation** when replication features are not supported
-- **No false failures** for drivers that legitimately don't support replication
+## Other suites in kubernetes-csi-addons
 
-## Driver Feature/Mode Detection & Skip Logic
-
-The test framework implements intelligent feature detection to ensure tests only run when appropriate driver capabilities are available:
-
-### Mirroring Mode Detection
-- **Automatic Discovery**: Tests detect which mirroring modes (`snapshot`, `journal`) are supported by each CSI driver
-- **Dynamic Skipping**: Tests requiring unsupported modes are automatically skipped with appropriate messaging
-- **Mode-Specific Validation**: Parameter validation (e.g., scheduling parameters) is enforced based on detected capabilities
-
-### Skip Logic Implementation
-```go
-// Example skip logic
-if !driver.SupportsMode("journal") {
-    framework.Skipf("CSI driver %s does not support journal mirroring mode", driver.Name)
-}
-```
-
-### Feature Detection Categories
-1. **Core Replication Support**: Basic EnableVolumeReplication/DisableVolumeReplication capability
-2. **Mirroring Modes**: Support for snapshot vs journal-based replication
-3. **Scheduling Parameters**: Support for schedulingInterval and schedulingStartTime
-4. **Group Operations**: Support for replicationsource parameter for volume groups
-5. **Force Operations**: Support for force parameter in disable/promote/demote operations
-
-**Reference**: For detailed skip logic implementation, see [CSI Test Framework Documentation](https://github.com/nadavleva/kubernetes_csiaddontests/blob/docs/storage-test-framework/test/e2e/storage/README.md)
-
-## Prerequisites and Cluster Bootstrap Validation
-
-The test framework performs comprehensive pre-flight validation to ensure all required components are properly configured:
-
-### StorageClass Validation
-- **Presence Check**: Verifies required StorageClass exists with appropriate provisioner
-- **Parameter Validation**: Confirms replication-related parameters are correctly set
-- **Provisioner Compatibility**: Validates provisioner supports CSI replication add-on
-
-### VolumeReplicationClass Validation
-- **Resource Availability**: Confirms VolumeReplicationClass CRDs are installed and accessible
-- **Configuration Check**: Validates replication parameters (schedulingInterval, mirroringMode)
-- **Secret References**: Verifies referenced secrets exist and contain required credentials
-
-### Cluster Connectivity Validation
-- **Multi-Cluster Setup**: Validates connectivity between primary and secondary clusters
-- **Network Policy Check**: Confirms required ports and protocols are accessible
-- **Peer Authentication**: Validates cluster-to-cluster authentication mechanisms
-
-### Pre-Check Failure Handling
-```yaml
-# Example validation failure scenarios:
-- Missing StorageClass: Test suite skipped with clear error message
-- Invalid VolumeReplicationClass: Specific replication tests skipped
-- Connectivity Issues: Multi-cluster tests marked as skipped
-- Missing Secrets: Authentication-dependent tests bypassed
-```
-
-### Bootstrap Requirements
-1. **CSI Driver Installation**: Driver pods running and healthy
-2. **CSI Add-ons Components**: csi-addons-controller deployed and operational
-3. **Required CRDs**: VolumeReplication, VolumeReplicationClass CRDs installed
-4. **RBAC Permissions**: Service accounts have necessary permissions for replication operations
-5. **Storage Backend**: Underlying storage system configured for replication
-
-**Graceful Degradation**: When prerequisites are missing, tests fail gracefully with descriptive messages rather than cryptic errors, enabling easy troubleshooting and environment validation.
-
-## Feature Flag Implementation Strategy
-Feature flags are used to control the exposure of replication features. The strategy involves:
-- Conditional checks based on the feature flag status.
-- Wrapping new functionality under the feature flag to prevent breaking existing implementations.
-
-## Running Tests Instructions
-
-The actual test implementation and execution instructions are maintained in the forked Kubernetes CSI test repository:
-
-**Test Implementation Repository**: [kubernetes_csiaddontests](https://github.com/nadavleva/kubernetes_csiaddontests)
-
-**CSI Replication Tests Location**: 
-- [test/e2e/storage](https://github.com/nadavleva/kubernetes_csiaddontests/tree/master/test/e2e/storage)
-- CSI Replication Add-on specific tests and runners
-
-### Quick Reference
-
-For detailed execution instructions, test configuration, and implementation details:
-
-1. **Clone the test repository**:
-   ```bash
-   git clone https://github.com/nadavleva/kubernetes_csiaddontests.git
-   cd kubernetes_csiaddontests
-   ```
-
-2. **Follow the test execution guide** in the repository's documentation for:
-   - Environment setup and configuration
-   - CSI driver capability detection
-   - Multi-cluster test execution
-   - Test result interpretation
-
-3. **Test Configuration**: The repository contains test manifests and configuration files for various CSI replication scenarios based on the test matrices defined in this documentation.
-
-**Note**: This documentation repository ([csi_replication_certs](https://github.com/nadavleva/csi_replication_certs)) defines the test specifications and requirements, while the implementation repository contains the actual executable tests.
-
-## Pass/Fail Criteria
-The tests will be considered successful if:
-- All assertions pass without any errors.
-- There are no unexpected failures during execution.
-
-## Example Workflow for Enabling Replication
-1. Enable volume replication using the following command:
-   ```bash
-   csi-driver enable-replication --volume-id <volume_id>
-   ```
-2. Monitor the status of the replication process:
-   ```bash
-   csi-driver get-replication-status --volume-id <volume_id>
-   ```
-
-## Troubleshooting Guide
-In case of issues, refer to the following steps for troubleshooting:
-- Check the logs of the CSI components for any error messages.
-- Ensure that the cluster meets all prerequisites mentioned above.
-- Validate network connectivity between the source and destination volumes.
-
-For further assistance, please refer to the official documentation or contact support.
+| Command | Role |
+|---------|------|
+| `make test-replication-e2e` | This track (L1-* matrix) |
+| `make test-e2e-volumereplication` | Feature smoke |
+| `make test-e2e-volumegroupreplication` | VGR CR lifecycle (not L1 VRG matrix) |
+| `make test` | Unit / envtest, fake gRPC |

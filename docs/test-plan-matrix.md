@@ -1,21 +1,21 @@
 # Test Plan Matrix
 
-## Overview
-This matrix outlines the test plan for the CSI Replication Certification across various layers.
+CSI protocol certification is **one layer** with two spec tracks until the replication addon-spec is approved into the CSI spec. Then those tracks merge. See [test-layers.md](test-layers.md).
 
-| Layer  | Description                                                                         | Priority | Execution Order | Documentation                                       | Test Cases | Status |
-| ------ | ----------------------------------------------------------------------------------- | -------- | ---------------- | --------------------------------------------------- | ---------- | ------ |
-| Layer 0 | **Core CSI Certification** - External prerequisite for all verification tests.      | High     | 1                | [Core CSI Docs](https://github.com/container-storage-interface/spec) | N/A (External) | Implemented |
-| Layer 1 | **CSI Replication Add-on** - Primary focus of the tests. Refer to [csi-addons/spec](https://github.com/csi-addons/spec/tree/main/replication) and [kubevirt-storage-checkup](https://github.com/kiagnose/kubevirt-storage-checkup). | High     | 2                | [CSI Replication Add-on](https://github.com/csi-addons/kubernetes-csi-addons) | [Layer 1 Test Cases](layer-1-test-cases.md) | WIP |
-| Layer 2 | **OCP Platform Orchestration** - Validates single cluster setups with VRG management.| Medium   | 3                | [OCP Docs](https://github.com/openshift/origin/tree/master/test/extended/storage/csi) | [Layer 2 Test Cases](layer-2-test-cases.md) | TBD |
-| Layer 3 | **Multi-Cluster DR and CNV** - Testing with RamenDR and KubeVirt references.      | Medium   | 4                | [Multi-Cluster DR](https://github.com/RamenDR/ramen) | [Layer 3 Test Cases](layer-3-test-cases.md) | TBD |
+| Layer | Track / description | Priority | Order | Documentation | Test cases | Status |
+|-------|---------------------|----------|-------|---------------|------------|--------|
+| **1** | **CSI Spec** — core volume lifecycle (Kubernetes CSI E2E, csi-sanity) | High | 1 | [CSI spec](https://github.com/container-storage-interface/spec), [external storage tests](https://github.com/kubernetes/kubernetes/tree/master/test/e2e/storage/external) | Upstream CSI e2e | Existing (external) |
+| **1** | **CSI-Addons Spec** — replication semantics via VolumeReplication CRs | High | 1 (same layer) | [kubernetes-csi-addons](https://github.com/nadavleva/kubernetes-csi-addons), [layer-1-readme.md](layer-1-readme.md) | [layer-1-vr-tests.md](layer-1-vr-tests.md), [layer-1-test-cases.md](layer-1-test-cases.md) | **Implemented** (`make test-replication-e2e`) |
+| **2** | **OCP `openshift/csi`** — upstream External Storage on OpenShift + LUN overflow + clone-larger PVC | Medium | 2 | [origin CSI tests](https://github.com/openshift/origin/tree/main/test/extended/storage/csi) | [layer-2-readme.md](layer-2-readme.md) | Existing (no replication) |
+| **3** | **Multi-cluster DR and CNV** — RamenDR, KubeVirt | Medium | 3 | [RamenDR](https://github.com/RamenDR/ramen) | [layer-3-readme.md](layer-3-readme.md) | Upcoming |
 
-## Additional Information
-- The test execution order reflects the dependencies between the layers.
-- Priorities are defined as High, Medium, or Low, where High should be executed first.
-- Documentation linked in the table provides resources and references for further clarification.
+Layer 1 tracks run as **one certification layer**. They stay in different repos until replication is in the CSI spec; then the Addons suite merges into CSI E2E.
 
-## Status Legend
-- **Implemented**: Layer is complete and external prerequisite
-- **WIP**: Work In Progress - actively being developed
-- **TBD**: To Be Determined - planned for future development
+A replication driver must pass the CSI Spec track **and** the Addons track. After merge, that is a single CSI E2E run with a replication capability.
+
+## Status legend
+
+- **Existing (external)** — upstream CSI tests; not owned here
+- **Implemented** — `test-replication-e2e` in kubernetes-csi-addons (gaps: array unreachable, failover intent, VGR matrix)
+- **Existing (no replication)** — `openshift/csi` on OCP; does not cover VolumeReplication
+- **Planned / Upcoming** — later layers

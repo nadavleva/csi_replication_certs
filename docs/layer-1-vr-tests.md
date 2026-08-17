@@ -1,18 +1,21 @@
-# Layer-1 CSI Replication Add-on Test Matrix: Full Expanded Enumeration
+# Layer 1 CSI-Addons Spec — VolumeReplication Test Matrix
 
-This file fully enumerates all endpoint, state, and workflow-driven scenarios for Layer-1 CSI Replication driver conformance.  
-It is intended for use by certification tools, automation, and test writers.
+Written scenarios for the **CSI-Addons Spec track** of Layer 1 (same layer as core CSI E2E; separate until the replication addon-spec is approved into the CSI spec). See [test-layers.md](test-layers.md).
 
-**Columns:**
-- Test ID
-- API (gRPC/CRD)
-- Scenario/Description
-- Node Role / Cluster State / Peer State / S3 State
-- Parameters (e.g., force)
-- Test Type (functional, negative, behavioral, API, performance)
-- Input/Setup Steps
-- Expected Result/Pass Criteria
-- Notes/Automation Link/Reference
+**Executable tests:** [kubernetes-csi-addons `test/e2e/replication/`](https://github.com/nadavleva/kubernetes-csi-addons/tree/main/test/e2e/replication) — `make test-replication-e2e`. Run book: [layer-1-readme.md](layer-1-readme.md). Suite docs: [replication-e2e-suite.md](https://github.com/nadavleva/kubernetes-csi-addons/blob/main/docs/testing/replication-e2e-suite.md).
+
+### Implementation vs this matrix (`test-replication-e2e`)
+
+| Status | IDs |
+|--------|-----|
+| **Implemented** | E-001…009; DIS-001…006, 009…012; PROM-001…004, 007, 008; DEM-001…004, 007, 008; RSYNC-001…006; INFO-001, 005, 008, 011–014 |
+| **Scaffold / skip** (array unreachable, Issues #9/#13) | PROM-005, PROM-006, DEM-005, DEM-006 |
+| **Not in suite** | DIS-007, 008, 013–016; PROM-009–013 (Issue #33); INFO-002, 003, 004, 006, 007, 009, 010 as standalone specs |
+| **Peer-down** (E-003, DIS-005/006, PROM-003/004, DEM-003/004, RSYNC-003/006) | Implemented via `E2E_FAULT_INJECTOR` (iptables or NetworkFence). Rows below that still say “Not Supported” are **out of date** — the e2e suite is the source of truth. |
+
+---
+
+**Columns:** Test ID, API, Scenario, Role / peer / array, Params, Test Type, Setup, Expected outcome, Notes.
 
 ---
 
@@ -76,8 +79,13 @@ It is intended for use by certification tools, automation, and test writers.
 | L1-PROM-006| PromoteVolume         | Promote, array unreachable, force=true    | Secondary  | Up         | Down        | force=true  | negative  | Secondary array disconnected, force attempted  | Still fails, cannot promote without array access   | *Not Supported - unreachable storage not supported in current K8s CSI tests will be implemented in later stage |
 | L1-PROM-007| PromoteVolume         | Promote with active I/O workload          | Secondary  | Up         | Up          | force=false | behavioral| Active workload on primary                     | Graceful promotion, I/O redirected                 |            |
 | L1-PROM-008| PromoteVolume         | Force promote with active I/O workload    | Secondary  | Up         | Up          | force=true  | behavioral| Active workload, force promotion              | Immediate promotion, potential I/O disruption warning|           |
+| L1-PROM-009| PromoteVolume         | Planned failover - graceful promote       | Secondary  | Up         | Up          | force=false, intent=planned | functional | DemoteVolume succeeded on primary first, then promote secondary | Graceful promote succeeds, array knows primary demoted |            |
+| L1-PROM-010| PromoteVolume         | Unplanned failover with intent annotation | Secondary  | Down       | Up          | force=false, intent=unplanned | behavioral | Primary cluster down, VR annotated failover-intent=unplanned | Driver returns FailedPrecondition (Ceph-like) or executes unplanned failover (PowerStore-like) |            |
+| L1-PROM-011| PromoteVolume         | Unplanned failover with source-fenced     | Secondary  | Down       | Up          | force=false, source-fenced=true | behavioral | Primary fenced, unplanned failover initiated | Driver knows source is fenced, safe to execute unplanned failover |            |
+| L1-PROM-012| PromoteVolume         | PowerStore planned failover - graceful path | Secondary | Up         | Up          | force=false, intent=planned | functional | Planned failover on PowerStore, source demoted first | Graceful sync from primary, promote succeeds, auto re-protect initiated |            |
+| L1-PROM-013| PromoteVolume         | PowerStore unplanned failover - force path | Secondary | Down       | Up          | force=true, intent=unplanned | behavioral | Unplanned failover on PowerStore, no source coordination | No graceful sync, immediate failover, manual re-protect required later |            |
 
-**PromoteVolume Test Count: 8 scenarios**
+**PromoteVolume Test Count: 13 scenarios**
 
 ---
 
@@ -134,14 +142,14 @@ It is intended for use by certification tools, automation, and test writers.
 
 ---
 
-**Total VolumeReplication API Test Count: 57+ scenarios**
+**Total VolumeReplication API Test Count: 62+ scenarios**
 - EnableVolumeReplication: 9 scenarios
 - DisableVolumeReplication: 16 scenarios  
-- PromoteVolume: 8 scenarios
+- PromoteVolume: 13 scenarios (includes intent-aware planned/unplanned failover paths)
 - DemoteVolume: 8 scenarios
 - ResyncVolume: 2+ scenarios
 - GetVolumeReplicationInfo: 14 scenarios
 
-*Note: Tests marked with "Not Supported" involve unreachable storage/cluster scenarios that are not supported in the current Kubernetes CSI test framework and will be implemented in later stage. See [disruptive tests documentation](https://github.com/nadavleva/kubernetes_csiaddontests/blob/docs/storage-test-framework/test/e2e/storage/README.md#disruptive-tests) for details.*
+*Peer-down (network partition) is implemented in `test-replication-e2e` via `E2E_FAULT_INJECTOR`. Array/storage unreachable remains scaffolded (Issues #9, #13). Run book: [layer-1-readme.md](layer-1-readme.md).*
 
 ---
